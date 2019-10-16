@@ -1,0 +1,20 @@
+{
+  "name": "tsvm",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "jest",
+    "grammar": "nearleyc ./src/assembler/grammar.ne -o ./src/assembler/grammar.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/nearley": "^2.11.0",
+    "jest": "^24.9.0",
+    "nearley": "^2.19.0",
+    "ts-jest": "^24.1.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.4"
+  }
+}

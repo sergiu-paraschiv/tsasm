@@ -1,0 +1,27 @@
+.ASMEditor {
+    width: 800px;
+    border: 1px solid #ebebeb;
+
+    .ace_gutter-cell {
+        &.ace_breakpoint {
+            position: relative;
+
+            &:before {
+                content: '';
+                display: block;
+                width: 12px;
+                height: 12px;
+                background-color: #ff2b5d;
+                border-radius: 50%;
+
+                position: absolute;
+                top: 4px;
+                left: 4px;
+            }
+        }
+    }
+}
+
+.ASMEditorPCLine {
+    background: rgba(7, 216, 44, 0.17) !important;
+}
