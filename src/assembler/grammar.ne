@@ -27,6 +27,7 @@ instr_1_label -> "JMP"   {% id %}
                | "JLT"   {% id %}
                | "JGTE"  {% id %}
                | "JLTE"  {% id %}
+               | "PUTS"  {% id %}
 
 instr_1_reg -> "JMP"     {% id %}
              | "JMPF"    {% id %}

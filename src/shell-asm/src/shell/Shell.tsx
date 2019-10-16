@@ -6,8 +6,8 @@ import { ParserError } from '../../../assembler/ParserError';
 
 
 const INITIAL_VALUE = `
-.asciiz 'foo'
-BAR: .asciiz 'bar'
+.asciiz '----------'
+BAR: .asciiz 'Done.'
 
         LOAD $1 50
         LOAD $2 10
@@ -24,8 +24,9 @@ START:  SUB  $1 $2 $1
         JMP  START
         
         
-END:    HALT
-
+END:    PUTS BAR
+        HALT
+.asciiz '----------'
 `;
 
 interface IState {
@@ -36,6 +37,7 @@ interface IState {
     iterations: number | undefined
     validBreakpoints: number[]
     error?: ParserError;
+    outputBuffer: Uint8Array;
 }
 
 export default class Shell extends React.PureComponent<{}, IState> {
@@ -52,12 +54,16 @@ export default class Shell extends React.PureComponent<{}, IState> {
             crtPc: undefined,
             iterations: undefined,
             validBreakpoints: [],
-            error: undefined
+            error: undefined,
+            outputBuffer: new Uint8Array()
         };
     }
 
     render() {
-        const { running, crtPc, breakpoints, validBreakpoints, error } = this.state;
+        const { running, crtPc, breakpoints, validBreakpoints, error, outputBuffer } = this.state;
+
+        let ob = '';
+        outputBuffer.forEach(charCode => ob += String.fromCharCode(charCode));
 
         return (
             <div>
@@ -81,7 +87,7 @@ export default class Shell extends React.PureComponent<{}, IState> {
                 <button onClick={this.handleClickStop} disabled={!running}>Stop</button>
 
                 {(this.debugData && this.crtVM) ? (
-                    <div className="ace_editor">
+                    <div className="shell_watch">
                         <div><strong>PC:</strong> {crtPc}</div>
                         <div><strong>Flags</strong></div>
                         <div>remainder: {this.crtVM!.flags.remainder}</div>
@@ -95,6 +101,12 @@ export default class Shell extends React.PureComponent<{}, IState> {
                         {Object.keys(this.debugData.labels).map(name => (
                             <div key={name}>{name}: {this.debugData!.labels[name]}</div>
                         ))}
+
+                        <div><strong>Output</strong></div>
+                        <textarea
+                            readOnly={true}
+                            value={ob}
+                        />
                     </div>
                 ) : null}
 
@@ -169,6 +181,16 @@ export default class Shell extends React.PureComponent<{}, IState> {
                 this.setState({
                     crtPc,
                     iterations
+                });
+            });
+
+            this.crtVM.onOutputBufferChange(() => {
+                if (!this.crtVM) {
+                    return;
+                }
+
+                this.setState({
+                    outputBuffer: this.crtVM.outputBuffer
                 });
             });
 

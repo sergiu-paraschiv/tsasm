@@ -261,7 +261,7 @@ test('Simple PROGRAM with labels', () => {
         8, 0, 0, 0,
         Opcode.LOAD, 1,  1, 244,
         Opcode.LOAD, 2,  0, 10,
-        Opcode.JMPL, 8, 0, 0,
+        Opcode.JMPL, 8,  0, 0,
         Opcode.JEQL, 12, 0, 0,
         Opcode.JMP,  1,  0, 0,
         Opcode.JEQ,  2,  0, 0,
@@ -506,5 +506,17 @@ END:    HALT`);
         Opcode.JEQL, 56, 0,  0,
         Opcode.JMPL, 36, 0,  0,
         Opcode.HALT, 0,  0, 0
+    ]));
+});
+
+test('PUTS LABEL', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('LABEL: PUTS LABEL');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUTS, 8, 0, 0
     ]));
 });

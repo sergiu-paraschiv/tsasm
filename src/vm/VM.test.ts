@@ -377,3 +377,18 @@ test('PROGRAM #2', () => {
     expect(vm.pc).toBe(60);
 });
 
+test('PUTS FOO', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        12, 0, 0, 0, // index of body
+        102, 111, 111, 0, // 'f' 'o' 'o' 0
+        Opcode.PUTS, 8, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.pc).toBe(20);
+    expect(vm.outputBuffer).toEqual(Uint8Array.from([102, 111, 111, 0]));
+});
+

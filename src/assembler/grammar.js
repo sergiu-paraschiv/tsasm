@@ -41,6 +41,8 @@ var grammar = {
     {"name": "instr_1_label", "symbols": ["instr_1_label$string$6"], "postprocess": id},
     {"name": "instr_1_label$string$7", "symbols": [{"literal":"J"}, {"literal":"L"}, {"literal":"T"}, {"literal":"E"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "instr_1_label", "symbols": ["instr_1_label$string$7"], "postprocess": id},
+    {"name": "instr_1_label$string$8", "symbols": [{"literal":"P"}, {"literal":"U"}, {"literal":"T"}, {"literal":"S"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "instr_1_label", "symbols": ["instr_1_label$string$8"], "postprocess": id},
     {"name": "instr_1_reg$string$1", "symbols": [{"literal":"J"}, {"literal":"M"}, {"literal":"P"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "instr_1_reg", "symbols": ["instr_1_reg$string$1"], "postprocess": id},
     {"name": "instr_1_reg$string$2", "symbols": [{"literal":"J"}, {"literal":"M"}, {"literal":"P"}, {"literal":"F"}], "postprocess": function joiner(d) {return d.join('');}},

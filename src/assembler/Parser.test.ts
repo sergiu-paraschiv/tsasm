@@ -287,3 +287,14 @@ test('labeled .asciiz', () => {
         { label: 'FOO', op: ['.asciiz', 'foo'] },
     ]);
 });
+
+test('PUTS LABEL', () => {
+    const parser = new Parser();
+
+    parser.feed('PUTS LABEL\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['PUTS', 'LABEL']
+    ]);
+});

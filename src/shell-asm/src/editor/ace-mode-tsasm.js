@@ -8,7 +8,7 @@ ace.define('ace/mode/tsasm', ['require', 'exports', 'ace/lib/oop', 'ace/mode/tex
             start: [
                 {
                     token: 'keyword.control.assembly',
-                    regex: /(HALT|LOAD|ADD|SUB|MUL|DIV|JMP|JMPF|JMPB|CMP|JEQ|JNEQ|JGT|JLT|JGTE|JLTE|\.asciiz)/,
+                    regex: /(HALT|LOAD|ADD|SUB|MUL|DIV|JMP|JMPF|JMPB|CMP|JEQ|JNEQ|JGT|JLT|JGTE|JLTE|\.asciiz|PUTS)/,
                     caseInsensitive: false
                 },
 

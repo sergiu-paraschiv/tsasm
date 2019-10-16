@@ -20,7 +20,7 @@ export class Assembler {
     private DATA_MAP: {
         [key: string]: {
             opcode: Opcode
-            data: (0 | 8 | 16 | 'reg' | 'reg-or-label')[]
+            data: (0 | 8 | 16 | 'reg' | 'label' | 'reg-or-label')[]
             opcodeWithLabel?: Opcode
         }
     } = {
@@ -109,6 +109,11 @@ export class Assembler {
             opcode: Opcode.JLTE,
             data: [ 'reg-or-label' ],
             opcodeWithLabel: Opcode.JLTEL
+        },
+
+        'PUTS': {
+            opcode: Opcode.PUTS,
+            data: [ 'label' ]
         }
     };
 
@@ -219,12 +224,13 @@ export class Assembler {
                     else if (
                         map.data[dataIndex - 1] === 'reg-or-label'
                         && typeof op[dataIndex] === 'string'
+                        && map.opcodeWithLabel
                     ) {
-                        if (!map.opcodeWithLabel) {
-                            throw new AssemblerError('Instruction opcode[' + map.opcode + '] accepts reg or label, got label, but no `opcodeWithLabel` is defined');
-                        }
-
                         program[codeOffset] = map.opcodeWithLabel;
+                        program[codeOffset + dataIndex] = labels[op[dataIndex]];
+                    }
+
+                    else if (map.data[dataIndex - 1] === 'label') {
                         program[codeOffset + dataIndex] = labels[op[dataIndex]];
                     }
 

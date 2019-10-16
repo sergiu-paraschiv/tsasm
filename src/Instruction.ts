@@ -25,6 +25,8 @@ export enum Opcode {
     JGTEL = 25,
     JLTEL = 26,
 
+    PUTS  = 30,
+
     HEAD  = 199,
 
     ILGL
@@ -32,14 +34,6 @@ export enum Opcode {
 
 export enum Directive {
     ASCIIZ = '.asciiz'
-}
-
-export class Instruction {
-    public opcode: Opcode;
-
-    constructor(opcode: Opcode) {
-        this.opcode = opcode;
-    }
 }
 
 export const ID_HEADER = Uint8Array.from([Opcode.HEAD, 65, 83, 77]);

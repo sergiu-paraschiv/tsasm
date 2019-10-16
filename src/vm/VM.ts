@@ -12,6 +12,7 @@ export class VM {
         negative: boolean;
     };
     public totalIterations: number;
+    public outputBuffer: Uint8Array;
 
     private breakpoints: number[];
     private ignoreNextBreakpoint: boolean;
@@ -19,6 +20,7 @@ export class VM {
     private stopCallback: undefined | (() => void);
     private forceStop: boolean;
     private pcChangeCallback: undefined | ((pc: number, iterations: number) => void);
+    private outputBufferChange: undefined | (() => void);
 
     constructor() {
         this.registers = new Uint32Array(16);
@@ -30,6 +32,7 @@ export class VM {
             negative: false
         };
         this.totalIterations = 0;
+        this.outputBuffer = new Uint8Array();
 
         this.breakpoints = [];
         this.ignoreNextBreakpoint = false;
@@ -75,6 +78,10 @@ export class VM {
 
     public onPcChange(callback: (pc: number, iterations: number) => void) {
         this.pcChangeCallback = callback;
+    }
+
+    public onOutputBufferChange(callback: () => void) {
+        this.outputBufferChange = callback;
     }
 
     private runMainLoop() {
@@ -341,6 +348,25 @@ export class VM {
                 }
                 break;
 
+            case Opcode.PUTS:
+                let PUTS_label_addr = this.next8Bits();
+                this.next16Bits(); // padding
+
+                const str = [];
+                let char = this.program[PUTS_label_addr];
+
+                while (char) {
+                    str.push(char);
+                    PUTS_label_addr += 1;
+                    char = this.program[PUTS_label_addr];
+                }
+                str.push(0);
+                this.outputBuffer = Uint8Array.from(str);
+
+                if (this.outputBufferChange) {
+                    this.outputBufferChange();
+                }
+                break;
 
             default:
                 throw new VMError(`Unrecognized opcode [${opcode}] found! PC: ${this.pc} Terminating!`);
