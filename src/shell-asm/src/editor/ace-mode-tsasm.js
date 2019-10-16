@@ -8,7 +8,7 @@ ace.define('ace/mode/tsasm', ['require', 'exports', 'ace/lib/oop', 'ace/mode/tex
             start: [
                 {
                     token: 'keyword.control.assembly',
-                    regex: '\\b(HALT|LOAD|ADD|SUB|MUL|DIV|JMP|JMPF|JMPB|CMP|JEQ|JNEQ|JGT|JLT|JGTE|JLTE)\\b',
+                    regex: /(HALT|LOAD|ADD|SUB|MUL|DIV|JMP|JMPF|JMPB|CMP|JEQ|JNEQ|JGT|JLT|JGTE|JLTE|\.asciiz)/,
                     caseInsensitive: false
                 },
 
@@ -26,6 +26,11 @@ ace.define('ace/mode/tsasm', ['require', 'exports', 'ace/lib/oop', 'ace/mode/tex
                 {
                     token: 'constant.character.decimal.assembly',
                     regex: '\\b[0-9]+\\b'
+                },
+
+                {
+                    token: 'constant.character.string.assembly',
+                    regex: /\'.*\'/
                 },
 
                 {
