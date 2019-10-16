@@ -39,6 +39,7 @@ export class VM {
 
     public run() {
         this.ensureIdentifyingHeader();
+        this.consumeHeaderSection();
         this.runMainLoop();
     }
 
@@ -105,9 +106,17 @@ export class VM {
         }
     }
 
+    private consumeHeaderSection(): void {
+        const headerLength = this.next8Bits();
+        this.next8Bits(); // padding
+        this.next16Bits();
+
+        this.pc = headerLength;
+    }
+
     private executeInstruction(): boolean {
         if (this.pc >= this.program.length) {
-            throw new VMError(`PC out of bounds: ${this.pc}, while program length is ${this.program.length} Terminating!`);
+            throw new VMError(`PC out of bounds: ${this.pc}, while program length is ${this.program.length}. Maybe no HALT was encountered? Terminating!`);
         }
 
         if (this.pcChangeCallback) {

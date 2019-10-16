@@ -9,6 +9,7 @@ test('HALT', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.HALT, 0, 0, 0
     ]));
 });
@@ -20,6 +21,7 @@ test('LOAD', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.LOAD, 15, 1, 244
     ]));
 });
@@ -35,6 +37,7 @@ test('HALT + LOAD', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.HALT, 0, 0, 0,
         Opcode.LOAD, 15, 1, 244
     ]));
@@ -47,6 +50,7 @@ test('ADD', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.ADD, 1, 2, 3
     ]));
 });
@@ -58,6 +62,7 @@ test('SUB', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.SUB, 1, 2, 3
     ]));
 });
@@ -69,6 +74,7 @@ test('MUL', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.MUL, 1, 2, 3
     ]));
 });
@@ -80,6 +86,7 @@ test('DIV', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.DIV, 1, 2, 3
     ]));
 });
@@ -91,6 +98,7 @@ test('JMP', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JMP, 1, 0, 0
     ]));
 });
@@ -102,6 +110,7 @@ test('JMPF', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JMPF, 1, 0, 0
     ]));
 });
@@ -113,6 +122,7 @@ test('JMPB', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JMPB, 1, 0, 0
     ]));
 });
@@ -124,6 +134,7 @@ test('CMP', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.CMP, 1, 2, 0
     ]));
 });
@@ -135,6 +146,7 @@ test('JEQ', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JEQ, 1, 0, 0
     ]));
 });
@@ -146,6 +158,7 @@ test('JNEQ', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JNEQ, 1, 0, 0
     ]));
 });
@@ -157,6 +170,7 @@ test('JGT', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JGT, 1, 0, 0
     ]));
 });
@@ -168,6 +182,7 @@ test('JLT', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JLT, 1, 0, 0
     ]));
 });
@@ -179,6 +194,7 @@ test('JGTE', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JGTE, 1, 0, 0
     ]));
 });
@@ -190,6 +206,7 @@ test('JLTE', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.JLTE, 1, 0, 0
     ]));
 });
@@ -212,6 +229,7 @@ test('Simple PROGRAM', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.LOAD, 1,  1,  244,  // 4
         Opcode.LOAD, 2,  0,  10,   // 8
         Opcode.LOAD, 10, 0,  0,    // 12
@@ -240,13 +258,14 @@ test('Simple PROGRAM with labels', () => {
 
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
-        Opcode.LOAD, 1, 1, 244,
-        Opcode.LOAD, 2, 0, 10,
-        Opcode.JMPL, 4, 0, 0,
-        Opcode.JEQL, 8, 0, 0,
-        Opcode.JMP,  1, 0, 0,
-        Opcode.JEQ,  2, 0, 0,
-        Opcode.HALT, 0, 0, 0
+        8, 0, 0, 0,
+        Opcode.LOAD, 1,  1, 244,
+        Opcode.LOAD, 2,  0, 10,
+        Opcode.JMPL, 8, 0, 0,
+        Opcode.JEQL, 12, 0, 0,
+        Opcode.JMP,  1,  0, 0,
+        Opcode.JEQ,  2,  0, 0,
+        Opcode.HALT, 0,  0, 0
     ]));
 });
 
@@ -277,14 +296,14 @@ test('provides line number => pc map if debug data is requested', () => {
 
     expect(data.debugData!.lineMap).toEqual([
         null,
-        4,
-        null,
-        null,
         8,
+        null,
         null,
         12,
         null,
         16,
+        null,
+        20,
         null
     ])
 });
@@ -338,7 +357,23 @@ END:    HALT
     expect(data.debugData!.labels).toBeDefined();
 
     expect(data.debugData!.labels).toEqual({
-        'END': 44,
-        'START': 24
+        'END': 48,
+        'START': 28
     })
+});
+
+test('handles .asciiz', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run(`
+        .asciiz 'foo'
+        LOAD $1 500
+    `);
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        12, 0, 0, 0, // index of body
+        102, 111, 111, 0, // 'f' 'o' 'o' 0
+        Opcode.LOAD, 1, 1, 244,
+    ]));
 });

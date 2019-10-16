@@ -288,16 +288,17 @@ test('Simple PROGRAM', () => {
 
     vm.program = Uint8Array.from([
         ... ID_HEADER,
-        Opcode.LOAD, 1,  1,  244,  // 4
-        Opcode.LOAD, 2,  0,  10,   // 8
-        Opcode.LOAD, 10, 0,  0,    // 12
-        Opcode.LOAD, 11, 0,  40,   // 16
-        Opcode.LOAD, 12, 0,  24,   // 20
-        Opcode.SUB,  1,  2,  1,    // 24
-        Opcode.CMP,  1,  10, 0,    // 28
-        Opcode.JEQ,  11, 0,  0,    // 32
-        Opcode.JMP,  12, 0,  0,    // 36
-        Opcode.HALT, 0,  0,  0     // 40
+        8, 0, 0, 0,
+        Opcode.LOAD, 1,  1,  244,  // 8
+        Opcode.LOAD, 2,  0,  10,   // 12
+        Opcode.LOAD, 10, 0,  0,    // 16
+        Opcode.LOAD, 11, 0,  44,   // 20
+        Opcode.LOAD, 12, 0,  28,   // 24
+        Opcode.SUB,  1,  2,  1,    // 28
+        Opcode.CMP,  1,  10, 0,    // 32
+        Opcode.JEQ,  11, 0,  0,    // 36
+        Opcode.JMP,  12, 0,  0,    // 40
+        Opcode.HALT, 0,  0,  0     // 44
     ]);
 
     vm.run();
@@ -309,11 +310,12 @@ test('identifying HEADER', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... ID_HEADER,
+        8, 0, 0, 0,
         Opcode.HALT, 0,  0,  0
     ]);
 
     vm.run();
-    expect(vm.pc).toBe(8);
+    expect(vm.pc).toBe(12);
 });
 
 test('throws on missing HEADER', () => {
@@ -333,6 +335,20 @@ test('throws on bad HEADER', () => {
     expect(() => {
         vm.run();
     }).toThrowError(new VMError('Bad program! No Identifying Header found!'));
+});
+
+test('HEADER section with constants', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        12, 0, 0, 0, // index of body
+        102, 111, 111, 0, // 'f' 'o' 'o' 0
+        Opcode.LOAD, 1, 1, 244,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.pc).toBe(20);
 });
 
 

@@ -30,6 +30,10 @@ export enum Opcode {
     ILGL
 }
 
+export enum Directive {
+    ASCIIZ = '.asciiz'
+}
+
 export class Instruction {
     public opcode: Opcode;
 

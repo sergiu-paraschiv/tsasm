@@ -1,5 +1,5 @@
 import { Parser } from './Parser';
-import { ID_HEADER, Opcode } from '../Instruction';
+import { ID_HEADER, Opcode, Directive } from '../Instruction';
 import { AssemblerError } from './AssemblerError';
 
 
@@ -112,6 +112,10 @@ export class Assembler {
         }
     };
 
+    private DIRECTIVES: string[] = [
+        '.asciiz'
+    ];
+
     constructor() {
         this.parser = new Parser();
     }
@@ -122,10 +126,7 @@ export class Assembler {
     } {
         const linesWithLabels = this.parse(src);
         const [ labels, lines ] = this.extractLabels(linesWithLabels);
-        const codeLines = lines.filter(line => line !== null);
-        const program = new Uint8Array((codeLines.length + 1) * Assembler.OP_LENGTH);
         let debugData: IDebugData | undefined = undefined;
-        let codeOffset = 0;
 
         if (withDebugData) {
             debugData = {
@@ -135,13 +136,14 @@ export class Assembler {
             };
         }
 
-        for (let i = 0; i < Assembler.OP_LENGTH; i++) {
-            program[i] = ID_HEADER[i];
-        }
+        let [ header, codeOffset, bodyLength ] = this.buildHeaderSection(lines);
 
-        codeOffset = Assembler.OP_LENGTH;
+        const body = new Uint8Array(bodyLength * Assembler.OP_LENGTH);
+        const program = Uint8Array.from([
+            ... header,
+            ... body
+        ]);
 
-        let opIndex = 1;
         for (let i = 0; i < lines.length; i++) {
             if (lines[i] === null) {
                 if (debugData) {
@@ -152,12 +154,12 @@ export class Assembler {
             }
 
             if (debugData) {
-                debugData.lineMap[i] = opIndex * Assembler.OP_LENGTH;
+                debugData.lineMap[i] = codeOffset;
             }
 
             if (this.DATA_MAP.hasOwnProperty(lines[i][0])) {
                 const map = this.DATA_MAP[lines[i][0] as string];
-                program[(opIndex * Assembler.OP_LENGTH)] = map.opcode;
+                program[codeOffset] = map.opcode;
 
                 for (let dataIndex = 1; dataIndex < Assembler.OP_LENGTH; dataIndex++) {
                     if (
@@ -165,19 +167,12 @@ export class Assembler {
                         || map.data[dataIndex - 1] === 'reg'
                         || (map.data[dataIndex - 1] === 'reg-or-label' && typeof lines[i][dataIndex] === 'number')
                     ) {
-                        program[(
-                            opIndex * Assembler.OP_LENGTH
-                        ) + dataIndex] = lines[i][dataIndex];
+                        program[codeOffset + dataIndex] = lines[i][dataIndex];
                     }
 
                     else if (map.data[dataIndex - 1] === 16) {
-                        program[(
-                            opIndex * Assembler.OP_LENGTH
-                        ) + dataIndex] = lines[i][dataIndex] >>> 8;
-
-                        program[(
-                            opIndex * Assembler.OP_LENGTH
-                        ) + dataIndex + 1] = lines[i][dataIndex] & 255;
+                        program[codeOffset + dataIndex] = lines[i][dataIndex] >>> 8;
+                        program[codeOffset + dataIndex + 1] = lines[i][dataIndex] & 255;
 
                         dataIndex += 1;
                     }
@@ -190,17 +185,12 @@ export class Assembler {
                             throw new AssemblerError('Instruction opcode[' + map.opcode + '] accepts reg or label, got label, but no `opcodeWithLabel` is defined');
                         }
 
-                        program[(opIndex * Assembler.OP_LENGTH)] = map.opcodeWithLabel;
-
-                        program[(
-                            opIndex * Assembler.OP_LENGTH
-                        ) + dataIndex] = codeOffset + (labels[lines[i][dataIndex]]);
+                        program[codeOffset] = map.opcodeWithLabel;
+                        program[codeOffset + dataIndex] = labels[lines[i][dataIndex]] + header.length;
                     }
 
                     else {
-                        program[(
-                            opIndex * Assembler.OP_LENGTH
-                        ) + dataIndex] = 0;
+                        program[codeOffset + dataIndex] = 0;
                     }
 
                     if (
@@ -215,11 +205,14 @@ export class Assembler {
                     }
                 }
 
-                opIndex += 1;
+                codeOffset += Assembler.OP_LENGTH;
+            }
+            else if (this.DIRECTIVES.indexOf(lines[i][0]) > -1) {
+                // do nothing
             }
             else {
                 // this will never happen, the parser should guarantee it.
-                throw new AssemblerError('Unknown Opcode encountered!');
+                throw new AssemblerError(`Unknown opcode [${lines[i][0]}] encountered!`);
             }
         }
 
@@ -229,7 +222,7 @@ export class Assembler {
 
             const labelNames = Object.keys(labels).sort();
             for (let i = 0; i < labelNames.length; i++) {
-                debugData.labels[labelNames[i]] = labels[labelNames[i]] + codeOffset;
+                debugData.labels[labelNames[i]] = labels[labelNames[i]] + header.length;
             }
         }
 
@@ -237,6 +230,58 @@ export class Assembler {
             program,
             debugData
         };
+    }
+
+    private buildHeaderSection(lines: any[]): [
+        Uint8Array,
+        number,
+        number
+    ] {
+        const codeLines = lines.filter(line => line !== null);
+        const header: number[] = [];
+        let consumedLines = 0;
+
+        for (let i = 0; i < Assembler.OP_LENGTH; i++) {
+            header.push(ID_HEADER[i]);
+        }
+
+        const constants: number[] = [];
+
+        for (let i = 0; i < codeLines.length; i++) {
+            if (lines[i] === null) {
+                continue;
+            }
+
+            if (lines[i][0] === Directive.ASCIIZ) {
+                for (let j = 0; j < lines[i][1].length; j++) {
+                    constants.push(lines[i][1][j].charCodeAt(0));
+                }
+
+                constants.push(0);
+
+                consumedLines += 1;
+            }
+        }
+
+        let padding = 0;
+        while (((constants.length + padding) % Assembler.OP_LENGTH) !== 0) {
+            padding += 1;
+        }
+
+        for (let i = 0; i < padding; i++) {
+            constants.push(0);
+        }
+
+        header.push(2 * Assembler.OP_LENGTH + constants.length);
+        header.push(0);
+        header.push(0);
+        header.push(0);
+
+        header.push(... constants);
+
+        const program = Uint8Array.from(header);
+
+        return [ program, header.length, codeLines.length - consumedLines ];
     }
 
     private parse(src: string): any[] {
