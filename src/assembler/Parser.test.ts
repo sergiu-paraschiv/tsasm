@@ -272,3 +272,14 @@ test('.asciiz', () => {
         ['.asciiz', 'foo']
     ]);
 });
+
+test('labeled .asciiz', () => {
+    const parser = new Parser();
+
+    parser.feed("FOO: .asciiz 'foo'\n");
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        { label: 'FOO', op: ['.asciiz', 'foo'] },
+    ]);
+});

@@ -88,6 +88,10 @@ export default class Shell extends React.PureComponent<{}, IState> {
                         {this.debugData.usedRegisters.map(reg => (
                             <div key={reg}>${reg}: {this.crtVM!.registers[reg]}</div>
                         ))}
+                        <div><strong>Labels</strong></div>
+                        {Object.keys(this.debugData.labels).map(name => (
+                            <div key={name}>{name}: {this.debugData!.labels[name]}</div>
+                        ))}
                     </div>
                 ) : null}
 

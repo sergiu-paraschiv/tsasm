@@ -6,6 +6,7 @@ segment_w -> _ __n                {% d => null %}
 segment -> instr                  {% id %}
          | label ":" __ instr     {% d => { return { label: d[0], op: d[3] } } %}
          | dir                    {% id %}
+         | label ":" __ dir       {% d => { return { label: d[0], op: d[3] } } %}
 
 dir -> ".asciiz" __ "'" .:+ "'"      {% d => [ d[0], d[3].join("") ] %}
 

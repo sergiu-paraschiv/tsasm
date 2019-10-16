@@ -1,5 +1,5 @@
 import { Parser } from './Parser';
-import { Opcode } from '../Instruction';
+import { ID_HEADER, Opcode } from '../Instruction';
 import { AssemblerError } from './AssemblerError';
 
 
@@ -10,6 +10,7 @@ interface ILabels {
 export interface IDebugData {
     lineMap: (number | null)[]
     usedRegisters: number[]
+    labels: ILabels
 }
 
 export class Assembler {
@@ -122,17 +123,25 @@ export class Assembler {
         const linesWithLabels = this.parse(src);
         const [ labels, lines ] = this.extractLabels(linesWithLabels);
         const codeLines = lines.filter(line => line !== null);
-        const program = new Uint8Array(codeLines.length * Assembler.OP_LENGTH);
+        const program = new Uint8Array((codeLines.length + 1) * Assembler.OP_LENGTH);
         let debugData: IDebugData | undefined = undefined;
+        let codeOffset = 0;
 
         if (withDebugData) {
             debugData = {
                 lineMap: [],
-                usedRegisters: []
+                usedRegisters: [],
+                labels: {}
             };
         }
 
-        let pc = 0;
+        for (let i = 0; i < Assembler.OP_LENGTH; i++) {
+            program[i] = ID_HEADER[i];
+        }
+
+        codeOffset = Assembler.OP_LENGTH;
+
+        let opIndex = 1;
         for (let i = 0; i < lines.length; i++) {
             if (lines[i] === null) {
                 if (debugData) {
@@ -143,12 +152,12 @@ export class Assembler {
             }
 
             if (debugData) {
-                debugData.lineMap[i] = pc * Assembler.OP_LENGTH;
+                debugData.lineMap[i] = opIndex * Assembler.OP_LENGTH;
             }
 
             if (this.DATA_MAP.hasOwnProperty(lines[i][0])) {
                 const map = this.DATA_MAP[lines[i][0] as string];
-                program[(pc * Assembler.OP_LENGTH)] = map.opcode;
+                program[(opIndex * Assembler.OP_LENGTH)] = map.opcode;
 
                 for (let dataIndex = 1; dataIndex < Assembler.OP_LENGTH; dataIndex++) {
                     if (
@@ -157,17 +166,17 @@ export class Assembler {
                         || (map.data[dataIndex - 1] === 'reg-or-label' && typeof lines[i][dataIndex] === 'number')
                     ) {
                         program[(
-                            pc * Assembler.OP_LENGTH
+                            opIndex * Assembler.OP_LENGTH
                         ) + dataIndex] = lines[i][dataIndex];
                     }
 
                     else if (map.data[dataIndex - 1] === 16) {
                         program[(
-                            pc * Assembler.OP_LENGTH
+                            opIndex * Assembler.OP_LENGTH
                         ) + dataIndex] = lines[i][dataIndex] >>> 8;
 
                         program[(
-                            pc * Assembler.OP_LENGTH
+                            opIndex * Assembler.OP_LENGTH
                         ) + dataIndex + 1] = lines[i][dataIndex] & 255;
 
                         dataIndex += 1;
@@ -181,16 +190,16 @@ export class Assembler {
                             throw new AssemblerError('Instruction opcode[' + map.opcode + '] accepts reg or label, got label, but no `opcodeWithLabel` is defined');
                         }
 
-                        program[(pc * Assembler.OP_LENGTH)] = map.opcodeWithLabel;
+                        program[(opIndex * Assembler.OP_LENGTH)] = map.opcodeWithLabel;
 
                         program[(
-                            pc * Assembler.OP_LENGTH
-                        ) + dataIndex] = labels[lines[i][dataIndex]] * Assembler.OP_LENGTH;
+                            opIndex * Assembler.OP_LENGTH
+                        ) + dataIndex] = codeOffset + (labels[lines[i][dataIndex]]);
                     }
 
                     else {
                         program[(
-                            pc * Assembler.OP_LENGTH
+                            opIndex * Assembler.OP_LENGTH
                         ) + dataIndex] = 0;
                     }
 
@@ -206,7 +215,7 @@ export class Assembler {
                     }
                 }
 
-                pc += 1;
+                opIndex += 1;
             }
             else {
                 // this will never happen, the parser should guarantee it.
@@ -216,6 +225,12 @@ export class Assembler {
 
         if (debugData) {
             debugData.usedRegisters = debugData.usedRegisters.sort((a: number, b: number) => a - b);
+            debugData.labels = {};
+
+            const labelNames = Object.keys(labels).sort();
+            for (let i = 0; i < labelNames.length; i++) {
+                debugData.labels[labelNames[i]] = labels[labelNames[i]] + codeOffset;
+            }
         }
 
         return {
@@ -249,7 +264,7 @@ export class Assembler {
                 pc += 1;
             }
             else if(linesWithLabels[i]) {
-                labels[linesWithLabels[i].label] = pc;
+                labels[linesWithLabels[i].label] = pc * Assembler.OP_LENGTH;
                 lines.push(linesWithLabels[i].op);
                 pc += 1;
             }

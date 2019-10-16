@@ -25,6 +25,8 @@ export enum Opcode {
     JGTEL = 25,
     JLTEL = 26,
 
+    HEAD  = 199,
+
     ILGL
 }
 
@@ -35,3 +37,5 @@ export class Instruction {
         this.opcode = opcode;
     }
 }
+
+export const ID_HEADER = Uint8Array.from([Opcode.HEAD, 65, 83, 77]);

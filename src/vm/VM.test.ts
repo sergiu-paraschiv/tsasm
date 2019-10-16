@@ -1,6 +1,6 @@
 import { VM } from './VM';
 import { VMError } from './VMError';
-import { Opcode } from '../Instruction';
+import { ID_HEADER, Opcode } from '../Instruction';
 
 
 test('a VM is initialized', () => {
@@ -11,15 +11,15 @@ test('a VM is initialized', () => {
 test('HALT', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([Opcode.HALT, 0, 0, 0]);
-    vm.runOnce();
-    expect(vm.pc).toBe(1);
+    vm.exec();
+    expect(vm.pc).toBe(4);
 });
 
 test('ILGL', () => {
     expect(() => {
         const vm = new VM();
         vm.program = Uint8Array.from([200, 0, 0, 0]);
-        vm.runOnce();
+        vm.exec();
         expect(vm.pc).toBe(1);
     }).toThrowError(new VMError(`Unrecognized opcode [200] found! PC: 1 Terminating!`));
 });
@@ -27,7 +27,7 @@ test('ILGL', () => {
 test('LOAD', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([Opcode.LOAD, 0, 1, 244]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.registers[0]).toBe(500);
 });
 
@@ -36,7 +36,7 @@ test('ADD', () => {
     vm.registers[0] = 500;
     vm.registers[1] = 10;
     vm.program = Uint8Array.from([Opcode.ADD, 0, 1, 2]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.registers[2]).toBe(510);
 });
 
@@ -45,7 +45,7 @@ test('opcode SUB', () => {
     vm.registers[0] = 500;
     vm.registers[1] = 10;
     vm.program = Uint8Array.from([Opcode.SUB, 0, 1, 2]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.registers[2]).toBe(490);
 });
 
@@ -54,7 +54,7 @@ test('MUL', () => {
     vm.registers[0] = 500;
     vm.registers[1] = 10;
     vm.program = Uint8Array.from([Opcode.MUL, 0, 1, 2]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.registers[2]).toBe(5000);
 });
 
@@ -63,7 +63,7 @@ test('DIV (no remainder)', () => {
     vm.registers[0] = 500;
     vm.registers[1] = 10;
     vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.registers[2]).toBe(50);
 });
 
@@ -72,7 +72,7 @@ test('DIV (remainder)', () => {
     vm.registers[0] = 500;
     vm.registers[1] = 9;
     vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.registers[2]).toBe(55);
     expect(vm.flags.remainder).toBe(5);
 });
@@ -81,7 +81,7 @@ test('JMP', () => {
     const vm = new VM();
     vm.registers[5] = 9;
     vm.program = Uint8Array.from([Opcode.JMP, 5, 0, 0]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 });
 
@@ -89,7 +89,7 @@ test('JMPF', () => {
     const vm = new VM();
     vm.registers[2] = 4;
     vm.program = Uint8Array.from([Opcode.JMPF, 2, 0, 0]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(8);
 });
 
@@ -97,7 +97,7 @@ test('JMPB', () => {
     const vm = new VM();
     vm.registers[2] = 4;
     vm.program = Uint8Array.from([Opcode.JMPB, 2, 0, 0]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(0);
 });
 
@@ -107,12 +107,12 @@ test('CMP equal flag', () => {
     vm.registers[1] = 2;
 
     vm.program = Uint8Array.from([Opcode.CMP, 0, 1, 0]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.flags.equal).toBe(true);
 
     vm.registers[1] = 3;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.flags.equal).toBe(false);
 });
 
@@ -122,19 +122,19 @@ test('CMP negative flag', () => {
     vm.registers[1] = 2;
 
     vm.program = Uint8Array.from([Opcode.CMP, 0, 1, 0]);
-    vm.runOnce();
+    vm.exec();
     expect(vm.flags.negative).toBe(false);
     expect(vm.flags.equal).toBe(false);
 
     vm.registers[1] = 4;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.flags.negative).toBe(true);
     expect(vm.flags.equal).toBe(false);
 
     vm.registers[1] = 3;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.flags.negative).toBe(false);
     expect(vm.flags.equal).toBe(true);
 });
@@ -145,12 +145,12 @@ test('JEQ', () => {
     vm.program = Uint8Array.from([Opcode.JEQ, 5, 0, 0]);
     vm.flags.equal = false;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 
     vm.flags.equal = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 });
 
@@ -160,12 +160,12 @@ test('JNEQ', () => {
     vm.program = Uint8Array.from([Opcode.JNEQ, 5, 0, 0]);
     vm.flags.equal = false;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 
     vm.flags.equal = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 });
 
@@ -176,18 +176,18 @@ test('JLT', () => {
     vm.flags.equal = false;
     vm.flags.negative = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = false;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 
     vm.flags.equal = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 });
 
@@ -198,18 +198,18 @@ test('JGT', () => {
     vm.flags.equal = false;
     vm.flags.negative = false;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 
     vm.flags.equal = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 });
 
@@ -220,24 +220,24 @@ test('JLTE', () => {
     vm.flags.equal = false;
     vm.flags.negative = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = false;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 
     vm.flags.equal = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 
     vm.flags.equal = true;
     vm.flags.negative = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 });
 
@@ -248,44 +248,91 @@ test('JGTE', () => {
     vm.flags.equal = false;
     vm.flags.negative = false;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(4);
 
     vm.flags.equal = true;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
 
     vm.flags.equal = true;
     vm.flags.negative = false;
 
-    vm.runOnce();
+    vm.exec();
     expect(vm.pc).toBe(9);
+});
+
+test('JEQ label', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([Opcode.JEQL, 5, 0, 0]);
+    vm.flags.equal = false;
+
+    vm.exec();
+    expect(vm.pc).toBe(4);
+
+    vm.flags.equal = true;
+
+    vm.exec();
+    expect(vm.pc).toBe(5);
 });
 
 test('Simple PROGRAM', () => {
     const vm = new VM();
 
     vm.program = Uint8Array.from([
-        Opcode.LOAD, 1,  1,  244,  // 0
-        Opcode.LOAD, 2,  0,  10,   // 4
-        Opcode.LOAD, 10, 0,  0,    // 8
-        Opcode.LOAD, 11, 0,  36,   // 12
-        Opcode.LOAD, 12, 0,  20,   // 16
-        Opcode.SUB,  1,  2,  1,    // 20
-        Opcode.CMP,  1,  10, 0,    // 24
-        Opcode.JEQ,  11, 0,  0,    // 28
-        Opcode.JMP,  12, 0,  0,    // 32
-        Opcode.HALT, 0,  0,  0     // 36
+        ... ID_HEADER,
+        Opcode.LOAD, 1,  1,  244,  // 4
+        Opcode.LOAD, 2,  0,  10,   // 8
+        Opcode.LOAD, 10, 0,  0,    // 12
+        Opcode.LOAD, 11, 0,  40,   // 16
+        Opcode.LOAD, 12, 0,  24,   // 20
+        Opcode.SUB,  1,  2,  1,    // 24
+        Opcode.CMP,  1,  10, 0,    // 28
+        Opcode.JEQ,  11, 0,  0,    // 32
+        Opcode.JMP,  12, 0,  0,    // 36
+        Opcode.HALT, 0,  0,  0     // 40
     ]);
 
     vm.run();
 
     expect(vm.registers[1]).toEqual(0);
 });
+
+test('identifying HEADER', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        Opcode.HALT, 0,  0,  0
+    ]);
+
+    vm.run();
+    expect(vm.pc).toBe(8);
+});
+
+test('throws on missing HEADER', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([ Opcode.HALT, 0,  0,  0 ]);
+
+    expect(() => {
+        vm.run();
+    }).toThrowError(new VMError('Bad program! No Identifying Header found!'));
+});
+
+
+test('throws on bad HEADER', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([ ID_HEADER[0], 1, 2, 3 ]);
+
+    expect(() => {
+        vm.run();
+    }).toThrowError(new VMError('Bad program! No Identifying Header found!'));
+});
+
+

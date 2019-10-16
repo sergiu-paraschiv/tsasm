@@ -1,4 +1,4 @@
-import { Opcode } from '../Instruction';
+import { ID_HEADER, Opcode } from '../Instruction';
 import { VMError } from './VMError';
 
 
@@ -38,20 +38,16 @@ export class VM {
     }
 
     public run() {
-        let isDone = false;
-
-        while (!isDone)
-        {
-            isDone = this.executeInstruction();
-        }
+        this.ensureIdentifyingHeader();
+        this.runMainLoop();
     }
 
     public continue() {
         this.ignoreNextBreakpoint = true;
-        this.run();
+        this.runMainLoop();
     }
 
-    public runOnce() {
+    public exec() {
         this.pc = 0;
         if (this.pcChangeCallback) {
             this.pcChangeCallback(this.pc, this.totalIterations);
@@ -65,7 +61,7 @@ export class VM {
 
     public stop() {
         this.forceStop = true;
-        this.run();
+        this.runMainLoop();
     }
 
     public onStop(callback: () => void) {
@@ -78,6 +74,35 @@ export class VM {
 
     public onPcChange(callback: (pc: number, iterations: number) => void) {
         this.pcChangeCallback = callback;
+    }
+
+    private runMainLoop() {
+        let isDone = false;
+
+        while (!isDone)
+        {
+            isDone = this.executeInstruction();
+        }
+    }
+
+    private ensureIdentifyingHeader(): void {
+        const opcode = this.decodeOpcode();
+
+        if (opcode !== Opcode.HEAD) {
+            throw new VMError('Bad program! No Identifying Header found!');
+        }
+
+        if (this.next8Bits() !== ID_HEADER[1]) {
+            throw new VMError('Bad program! No Identifying Header found!');
+        }
+
+        if (this.next8Bits() !== ID_HEADER[2]) {
+            throw new VMError('Bad program! No Identifying Header found!');
+        }
+
+        if (this.next8Bits() !== ID_HEADER[3]) {
+            throw new VMError('Bad program! No Identifying Header found!');
+        }
     }
 
     private executeInstruction(): boolean {
@@ -111,9 +136,13 @@ export class VM {
         const opcode = this.decodeOpcode();
         switch (opcode) {
             case Opcode.HALT:
+                this.next8Bits(); // padding
+                this.next16Bits(); // padding
+
                 if (this.stopCallback) {
                     this.stopCallback();
                 }
+
                 return true;
 
             case Opcode.LOAD:
