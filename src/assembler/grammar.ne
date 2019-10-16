@@ -8,7 +8,7 @@ segment -> instr                  {% id %}
          | dir                    {% id %}
          | label ":" __ dir       {% d => { return { label: d[0], op: d[3] } } %}
 
-dir -> ".asciiz" __ "'" .:+ "'"      {% d => [ d[0], d[3].join("") ] %}
+dir -> ".asciiz" __ "'" .:* "'"   {% d => [ d[0], d[3].join("") ] %}
 
 instr -> instr_no_op                          {% d => [ d[0] ] %}
        | instr_1_reg   __ reg                 {% d => [ d[0], d[2] ] %}

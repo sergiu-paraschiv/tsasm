@@ -6,6 +6,9 @@ import { ParserError } from '../../../assembler/ParserError';
 
 
 const INITIAL_VALUE = `
+.asciiz 'foo'
+BAR: .asciiz 'bar'
+
         LOAD $1 50
         LOAD $2 10
         LOAD $10 0

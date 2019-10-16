@@ -15,7 +15,7 @@ var grammar = {
     {"name": "segment", "symbols": ["dir"], "postprocess": id},
     {"name": "segment", "symbols": ["label", {"literal":":"}, "__", "dir"], "postprocess": d => { return { label: d[0], op: d[3] } }},
     {"name": "dir$string$1", "symbols": [{"literal":"."}, {"literal":"a"}, {"literal":"s"}, {"literal":"c"}, {"literal":"i"}, {"literal":"i"}, {"literal":"z"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "dir$ebnf$1", "symbols": [/./]},
+    {"name": "dir$ebnf$1", "symbols": []},
     {"name": "dir$ebnf$1", "symbols": ["dir$ebnf$1", /./], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "dir", "symbols": ["dir$string$1", "__", {"literal":"'"}, "dir$ebnf$1", {"literal":"'"}], "postprocess": d => [ d[0], d[3].join("") ]},
     {"name": "instr", "symbols": ["instr_no_op"], "postprocess": d => [ d[0] ]},

@@ -265,11 +265,15 @@ test('various labels', () => {
 test('.asciiz', () => {
     const parser = new Parser();
 
-    parser.feed(".asciiz 'foo'\n");
+    parser.feed(".asciiz ''\n");
+    parser.feed(".asciiz 'x'\n");
+    parser.feed(".asciiz 'foo bar baz'\n");
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['.asciiz', 'foo']
+        ['.asciiz', ''],
+        ['.asciiz', 'x'],
+        ['.asciiz', 'foo bar baz']
     ]);
 });
 

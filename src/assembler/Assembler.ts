@@ -124,8 +124,7 @@ export class Assembler {
         program: Uint8Array
         debugData?: IDebugData
     } {
-        const linesWithLabels = this.parse(src);
-        const [ labels, lines ] = this.extractLabels(linesWithLabels);
+        const lines = this.parse(src);
         let debugData: IDebugData | undefined = undefined;
 
         if (withDebugData) {
@@ -136,13 +135,43 @@ export class Assembler {
             };
         }
 
-        let [ header, codeOffset, bodyLength ] = this.buildHeaderSection(lines);
+        let [ header, labels, codeOffset, bodyLength ] = this.buildHeaderSection(lines);
 
         const body = new Uint8Array(bodyLength * Assembler.OP_LENGTH);
         const program = Uint8Array.from([
             ... header,
             ... body
         ]);
+
+        let labelsPhaseCodeOffset = codeOffset;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i] === null) {
+                if (debugData) {
+                    debugData.lineMap[i] = null;
+                }
+
+                continue;
+            }
+
+            let op = lines[i];
+            let label;
+            if (
+                op instanceof Object
+                && op.op
+                && op.label
+            ) {
+                label = op.label;
+                op = op.op;
+            }
+
+            if (this.DATA_MAP.hasOwnProperty(op[0])) {
+                if (label) {
+                    labels[label] = labelsPhaseCodeOffset;
+                }
+
+                labelsPhaseCodeOffset += Assembler.OP_LENGTH;
+            }
+        }
 
         for (let i = 0; i < lines.length; i++) {
             if (lines[i] === null) {
@@ -153,40 +182,50 @@ export class Assembler {
                 continue;
             }
 
-            if (debugData) {
-                debugData.lineMap[i] = codeOffset;
+            let op = lines[i];
+            if (
+                op instanceof Object
+                && op.op
+                && op.label
+            ) {
+                op = op.op;
             }
 
-            if (this.DATA_MAP.hasOwnProperty(lines[i][0])) {
-                const map = this.DATA_MAP[lines[i][0] as string];
+            if (this.DATA_MAP.hasOwnProperty(op[0])) {
+                const map = this.DATA_MAP[op[0] as string];
                 program[codeOffset] = map.opcode;
+
+
+                if (debugData) {
+                    debugData.lineMap[i] = codeOffset;
+                }
 
                 for (let dataIndex = 1; dataIndex < Assembler.OP_LENGTH; dataIndex++) {
                     if (
                         map.data[dataIndex - 1] === 8
                         || map.data[dataIndex - 1] === 'reg'
-                        || (map.data[dataIndex - 1] === 'reg-or-label' && typeof lines[i][dataIndex] === 'number')
+                        || (map.data[dataIndex - 1] === 'reg-or-label' && typeof op[dataIndex] === 'number')
                     ) {
-                        program[codeOffset + dataIndex] = lines[i][dataIndex];
+                        program[codeOffset + dataIndex] = op[dataIndex];
                     }
 
                     else if (map.data[dataIndex - 1] === 16) {
-                        program[codeOffset + dataIndex] = lines[i][dataIndex] >>> 8;
-                        program[codeOffset + dataIndex + 1] = lines[i][dataIndex] & 255;
+                        program[codeOffset + dataIndex] = op[dataIndex] >>> 8;
+                        program[codeOffset + dataIndex + 1] = op[dataIndex] & 255;
 
                         dataIndex += 1;
                     }
 
                     else if (
                         map.data[dataIndex - 1] === 'reg-or-label'
-                        && typeof lines[i][dataIndex] === 'string'
+                        && typeof op[dataIndex] === 'string'
                     ) {
                         if (!map.opcodeWithLabel) {
                             throw new AssemblerError('Instruction opcode[' + map.opcode + '] accepts reg or label, got label, but no `opcodeWithLabel` is defined');
                         }
 
                         program[codeOffset] = map.opcodeWithLabel;
-                        program[codeOffset + dataIndex] = labels[lines[i][dataIndex]] + header.length;
+                        program[codeOffset + dataIndex] = labels[op[dataIndex]];
                     }
 
                     else {
@@ -197,22 +236,22 @@ export class Assembler {
                         debugData
                         && (
                             map.data[dataIndex - 1] === 'reg'
-                            || (map.data[dataIndex - 1] === 'reg-or-label' && typeof lines[i][dataIndex] === 'number')
+                            || (map.data[dataIndex - 1] === 'reg-or-label' && typeof op[dataIndex] === 'number')
                         )
-                        && debugData.usedRegisters.indexOf(lines[i][dataIndex]) < 0
+                        && debugData.usedRegisters.indexOf(op[dataIndex]) < 0
                     ) {
-                        debugData.usedRegisters.push(lines[i][dataIndex]);
+                        debugData.usedRegisters.push(op[dataIndex]);
                     }
                 }
 
                 codeOffset += Assembler.OP_LENGTH;
             }
-            else if (this.DIRECTIVES.indexOf(lines[i][0]) > -1) {
+            else if (this.DIRECTIVES.indexOf(op[0]) > -1) {
                 // do nothing
             }
             else {
                 // this will never happen, the parser should guarantee it.
-                throw new AssemblerError(`Unknown opcode [${lines[i][0]}] encountered!`);
+                throw new AssemblerError(`Unknown opcode [${op[0]}] encountered!`);
             }
         }
 
@@ -222,7 +261,7 @@ export class Assembler {
 
             const labelNames = Object.keys(labels).sort();
             for (let i = 0; i < labelNames.length; i++) {
-                debugData.labels[labelNames[i]] = labels[labelNames[i]] + header.length;
+                debugData.labels[labelNames[i]] = labels[labelNames[i]];
             }
         }
 
@@ -234,11 +273,13 @@ export class Assembler {
 
     private buildHeaderSection(lines: any[]): [
         Uint8Array,
+        ILabels,
         number,
         number
     ] {
         const codeLines = lines.filter(line => line !== null);
         const header: number[] = [];
+        const labels: ILabels = {};
         let consumedLines = 0;
 
         for (let i = 0; i < Assembler.OP_LENGTH; i++) {
@@ -248,13 +289,31 @@ export class Assembler {
         const constants: number[] = [];
 
         for (let i = 0; i < codeLines.length; i++) {
-            if (lines[i] === null) {
+            let label;
+            let op = codeLines[i];
+
+            if (op === null) {
                 continue;
             }
 
-            if (lines[i][0] === Directive.ASCIIZ) {
-                for (let j = 0; j < lines[i][1].length; j++) {
-                    constants.push(lines[i][1][j].charCodeAt(0));
+            if (
+                op instanceof Object
+                && op.op
+                && op.label
+            ) {
+                label = op.label;
+                op = op.op;
+            }
+
+            if (op[0] === Directive.ASCIIZ) {
+                if (label) {
+                    labels[label] = (
+                        2 * Assembler.OP_LENGTH
+                    ) + constants.length;
+                }
+
+                for (let j = 0; j < op[1].length; j++) {
+                    constants.push(op[1][j].charCodeAt(0));
                 }
 
                 constants.push(0);
@@ -279,9 +338,12 @@ export class Assembler {
 
         header.push(... constants);
 
-        const program = Uint8Array.from(header);
-
-        return [ program, header.length, codeLines.length - consumedLines ];
+        return [
+            Uint8Array.from(header),
+            labels,
+            header.length,
+            codeLines.length - consumedLines
+        ];
     }
 
     private parse(src: string): any[] {
@@ -296,28 +358,5 @@ export class Assembler {
         }
 
         return this.parser.results[0];
-    }
-
-    private extractLabels(linesWithLabels: any[]): [ ILabels, any[] ] {
-        const labels: ILabels = {};
-        const lines: any[] = [];
-
-        let pc = 0;
-        for (let i = 0; i < linesWithLabels.length; i++) {
-            if (linesWithLabels[i] instanceof Array) {
-                lines.push(linesWithLabels[i]);
-                pc += 1;
-            }
-            else if(linesWithLabels[i]) {
-                labels[linesWithLabels[i].label] = pc * Assembler.OP_LENGTH;
-                lines.push(linesWithLabels[i].op);
-                pc += 1;
-            }
-            else {
-                lines.push(linesWithLabels[i]);
-            }
-        }
-
-        return [ labels, lines ];
     }
 }

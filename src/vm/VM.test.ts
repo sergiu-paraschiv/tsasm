@@ -351,4 +351,29 @@ test('HEADER section with constants', () => {
     expect(vm.pc).toBe(20);
 });
 
+test('PROGRAM #2', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        16, 0, 0, 0,
+        102, 111, 111, 0,
+        98, 97, 114 , 0,
+        Opcode.LOAD, 1,  0,  50,
+        Opcode.LOAD, 2,  0,  10,
+        Opcode.LOAD, 10, 0,  0,
+        Opcode.LOAD, 11, 0,  0,
+        Opcode.LOAD, 12, 0,  1,
+        Opcode.SUB,  1,  2,  1,
+        Opcode.ADD,  11, 12, 11,
+        Opcode.CMP,  1,  10, 0,
+        Opcode.JEQL, 56, 0,  0,
+        Opcode.JMPL, 36, 0,  0,
+        Opcode.HALT, 0,  0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(0);
+    expect(vm.registers[11]).toBe(5);
+    expect(vm.pc).toBe(60);
+});
 
