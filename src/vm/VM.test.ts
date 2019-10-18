@@ -579,7 +579,7 @@ test('SAVE [$1, 255] $2', () => {
 
 test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () => {
     const vm = new VM();
-    vm.debug = true;
+
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
