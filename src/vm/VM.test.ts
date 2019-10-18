@@ -419,6 +419,19 @@ test('SAVE [65534] 10', () => {
     expect(vm.memory.get(65534)).toBe(10);
 });
 
+test('SAVE [100, 255] 10', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 1, 99, 10,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(355)).toBe(10);
+});
+
 test('LOAD $1 [0]', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
@@ -426,6 +439,20 @@ test('LOAD $1 [0]', () => {
         8, 0, 0, 0,
         Opcode.SAVE, 0, 0, 10,
         Opcode.LOADA, 1, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(10);
+});
+
+test('LOAD $1 [100, 255]', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 1, 99, 10,
+        Opcode.LOADA, 1, 1, 99,
         Opcode.HALT, 0, 0, 0
     ]);
 
@@ -448,18 +475,47 @@ test('LOAD $1 [$2]', () => {
     expect(vm.registers[1]).toBe(10);
 });
 
+test('LOAD $1 [$2, 255]', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 0, 255, 10,
+        Opcode.LOAD, 2, 0, 0,
+        Opcode.LOADAR, 1, 2, 255,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(10);
+});
+
 test('SAVE [$1] 10', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
         Opcode.LOAD, 1, 255, 254,
-        Opcode.SAVETOR, 1, 10, 0,
+        Opcode.SAVETOR, 1, 0, 10,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
     expect(vm.memory.get(65534)).toBe(10);
+});
+
+test('SAVE [$1, 255] 10', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 255, 254,
+        Opcode.SAVETOR, 1, 255, 10,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(65534 + 255)).toBe(10);
 });
 
 test('SAVE [0] $2', () => {
@@ -498,12 +554,27 @@ test('SAVE [$1] $2', () => {
         8, 0, 0, 0,
         Opcode.LOAD, 1, 255, 254,
         Opcode.LOAD, 2, 0, 10,
-        Opcode.SAVERTOR, 1, 2, 0,
+        Opcode.SAVERTOR, 1, 0, 2,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
     expect(vm.memory.get(65534)).toBe(10);
+});
+
+test('SAVE [$1, 255] $2', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 255, 254,
+        Opcode.LOAD, 2, 0, 10,
+        Opcode.SAVERTOR, 1, 255, 2,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(65534 + 255)).toBe(10);
 });
 
 test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () => {
@@ -515,7 +586,7 @@ test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () =
         Opcode.LOAD,    1, 255, 255, // put (256 * 256 - 1) in $1, our memory pointer
         Opcode.LOAD,    2, 1,   0,   // put 256 in $2, our multiplier
         Opcode.MUL,     1, 2,   1,   // multiply $1 by $2
-        Opcode.SAVETOR, 1, 10,  0,   // save 10 in memory at address pointed by $1
+        Opcode.SAVETOR, 1, 0,   10,  // save 10 in memory at address pointed by $1
         Opcode.LOADAR,  3, 1,   0,   // load memory pointed at $1 to $3
         Opcode.HALT,    0, 0, 0
     ]);
@@ -529,7 +600,6 @@ test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () =
 
 test('SAVE [$1] 10, where $1 points to (256 * 256 - 1) * 256 + 255 = 256 * 256 * 256 - 1, out of bounds', () => {
     const vm = new VM();
-    vm.debug = true;
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
@@ -538,7 +608,7 @@ test('SAVE [$1] 10, where $1 points to (256 * 256 - 1) * 256 + 255 = 256 * 256 *
         Opcode.LOAD,    3, 0,   255, // put 255 in $3, our out of bounds memory offset
         Opcode.MUL,     1, 2,   1,   // multiply $1 by $2
         Opcode.ADD,     1, 3,   1,   // add $3 to $1
-        Opcode.SAVETOR, 1, 10,  0,   // save 10 in memory at address pointed by $1
+        Opcode.SAVETOR, 1, 0,   10,  // save 10 in memory at address pointed by $1
         Opcode.HALT,    0, 0, 0
     ]);
 
@@ -547,10 +617,11 @@ test('SAVE [$1] 10, where $1 points to (256 * 256 - 1) * 256 + 255 = 256 * 256 *
     }).toThrowError(new MemoryError(`Memory index ${256 * 256 * 256 - 1} out of bounds!`));
 
 });
-// builds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] in memory
+
 test('PROGRAM #3 - with memory stuff', () => {
     const vm = new VM();
-    vm.debug = true;
+
+    // builds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] in memory
     vm.program = Uint8Array.from([
         /* 0  */ ... ID_HEADER,
         /* 4  */ 8, 0, 0, 0,
@@ -558,11 +629,58 @@ test('PROGRAM #3 - with memory stuff', () => {
         /* 12 */ Opcode.LOAD,     2,   0,  9, // put 9 in $2, our end index
         /* 16 */ Opcode.LOAD,     3,   0,  1, // put 1 in $3, our increment
         /* 20 */ Opcode.LOAD,     4,   0,  24,// put 28 in $4, the start index of our "loop"
-        /* 24 */ Opcode.SAVERTOR, 1,   1,  0, // save value of $1 in memory at address [$1]
+        /* 24 */ Opcode.SAVERTOR, 1,   0,  1, // save value of $1 in memory at address [$1]
         /* 28 */ Opcode.ADD,      1,   3,  1, // add $3 (incrementer) to $1 and save it to $1
         /* 32 */ Opcode.CMP,      1,   2,  0, // compare $1 with $2
         /* 36 */ Opcode.JLTE,     4,   0,  0, // jump to start of loop while $1 <= $2
         /* 40 */ Opcode.HALT,     0,   0,  0
+    ]);
+
+    vm.run();
+
+    expect(vm.memory.get(0)).toBe(0);
+    expect(vm.memory.get(1)).toBe(1);
+    expect(vm.memory.get(2)).toBe(2);
+    expect(vm.memory.get(3)).toBe(3);
+    expect(vm.memory.get(4)).toBe(4);
+    expect(vm.memory.get(5)).toBe(5);
+    expect(vm.memory.get(6)).toBe(6);
+    expect(vm.memory.get(7)).toBe(7);
+    expect(vm.memory.get(8)).toBe(8);
+    expect(vm.memory.get(9)).toBe(9);
+});
+
+
+test('PROGRAM #4 - with memory offset stuff', () => {
+    const vm = new VM();
+
+    // builds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] in memory
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD,     1,   0,  0, // put 0 in $1, our start address
+        Opcode.LOAD,     2,   0,  0, // put 0 in $2, our value
+        Opcode.LOAD,     3,   0,  1, // put 1 in $3, our incrementer
+        Opcode.SAVERTOR, 1,   0,  2, // put 0 in memory at address [$1, 0]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   1,  2, // put 1 in memory at address [$1, 1]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   2,  2, // put 2 in memory at address [$1, 2]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   3,  2, // put 3 in memory at address [$1, 3]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   4,  2, // put 4 in memory at address [$1, 4]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   5,  2, // put 5 in memory at address [$1, 5]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   6,  2, // put 6 in memory at address [$1, 6]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   7,  2, // put 7 in memory at address [$1, 7]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   8,  2, // put 8 in memory at address [$1, 8]
+        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.SAVERTOR, 1,   9,  2, // put 9 in memory at address [$1, 9]
+        Opcode.HALT,     0,   0,  0
     ]);
 
     vm.run();

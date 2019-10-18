@@ -14,7 +14,7 @@ test('HALT', () => {
     ]));
 });
 
-test('LOAD', () => {
+test('LOAD $15 500', () => {
     const assembler = new Assembler();
 
     const data = assembler.run('LOAD $15 500');
@@ -25,7 +25,6 @@ test('LOAD', () => {
         Opcode.LOAD, 15, 1, 244
     ]));
 });
-
 
 test('HALT + LOAD', () => {
     const assembler = new Assembler();
@@ -533,6 +532,18 @@ test('LOAD $1 [500]', () => {
     ]));
 });
 
+test('LOAD $1 [100, 255]', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('LOAD $1 [100, 255]');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOADA, 1, 1, 99
+    ]));
+});
+
 test('LOAD $1 [$2]', () => {
     const assembler = new Assembler();
 
@@ -542,6 +553,18 @@ test('LOAD $1 [$2]', () => {
         ... ID_HEADER,
         8, 0, 0, 0,
         Opcode.LOADAR, 1, 2, 0
+    ]));
+});
+
+test('LOAD $1 [$2, 255]', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('LOAD $1 [$2, 255]');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOADAR, 1, 2, 255
     ]));
 });
 
@@ -569,6 +592,18 @@ test('SAVE [65535] 10', () => {
     ]));
 });
 
+test('SAVE [100, 255] 10', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [100, 255] 10');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 1, 99, 10
+    ]));
+});
+
 test('SAVE [65535] 500, with int overflow', () => {
     const assembler = new Assembler();
 
@@ -589,7 +624,19 @@ test('SAVE [$1] 10', () => {
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.SAVETOR, 1, 10, 0
+        Opcode.SAVETOR, 1, 0, 10
+    ]));
+});
+
+test('SAVE [$1, 255] 10', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [$1, 255] 10');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVETOR, 1, 255, 10
     ]));
 });
 
@@ -605,6 +652,18 @@ test('SAVE [500] $2', () => {
     ]));
 });
 
+test('SAVE [100, 255] $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [100, 255] $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVER, 1, 99, 2
+    ]));
+});
+
 test('SAVE [$1] $2', () => {
     const assembler = new Assembler();
 
@@ -613,6 +672,18 @@ test('SAVE [$1] $2', () => {
     expect(data.program).toEqual(new Uint8Array([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.SAVERTOR, 1, 2, 0
+        Opcode.SAVERTOR, 1, 0, 2
+    ]));
+});
+
+test('SAVE [$1, 255] $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [$1, 255] $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVERTOR, 1, 255, 2
     ]));
 });

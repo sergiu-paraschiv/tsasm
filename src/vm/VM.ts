@@ -201,14 +201,16 @@ export class VM {
             case Opcode.LOADAR:
                 const LOADAR_register = this.next8Bits();
                 const LOADAR_reg_addr = this.next8Bits();
-                this.next8Bits();
+                const LOADAR_offset = this.next8Bits();
 
-                this.registers[LOADAR_register] = this.memory.get(this.getOffsettedMemoryAddress(LOADAR_reg_addr));
+                this.registers[LOADAR_register] = this.memory.get(this.registers[LOADAR_reg_addr] + LOADAR_offset);
 
                 this.log(
                     'LOADAR',
                     '[', LOADAR_register, ':', this.registers[LOADAR_register], ']',
-                    '[', LOADAR_reg_addr, ':', this.memory.get(this.getOffsettedMemoryAddress(LOADAR_reg_addr)), ']'
+                    '[', LOADAR_reg_addr, ':', this.registers[LOADAR_reg_addr], ']',
+                    '+', LOADAR_offset,
+                    '=', this.memory.get(this.registers[LOADAR_reg_addr] + LOADAR_offset)
                 );
                 break;
 
@@ -592,14 +594,15 @@ export class VM {
 
             case Opcode.SAVETOR:
                 const SAVETOR_reg = this.next8Bits();
+                const SAVETOR_offset = this.next8Bits();
                 const SAVETOR_int = this.next8Bits();
-                this.next8Bits(); // padding
 
-                this.memory.set(this.getOffsettedMemoryAddress(SAVETOR_reg), SAVETOR_int);
+                this.memory.set(this.registers[SAVETOR_reg] + SAVETOR_offset, SAVETOR_int);
 
                 this.log(
                     'SAVETOR',
-                    '[', SAVETOR_reg, ':', this.getOffsettedMemoryAddress(SAVETOR_reg), ']',
+                    '[', SAVETOR_reg, ':', this.registers[SAVETOR_reg], ']',
+                    '+', SAVETOR_offset,
                     '[', SAVETOR_int, ']',
                 );
                 break;
@@ -620,14 +623,15 @@ export class VM {
 
             case Opcode.SAVERTOR:
                 const SAVERTOR_to_reg = this.next8Bits();
+                const SAVERTOR_offset = this.next8Bits();
                 const SAVERTOR_reg = this.next8Bits();
-                this.next8Bits(); // padding
 
-                this.memory.set(this.getOffsettedMemoryAddress(SAVERTOR_to_reg), this.registers[SAVERTOR_reg]);
+                this.memory.set(this.registers[SAVERTOR_to_reg] + SAVERTOR_offset, this.registers[SAVERTOR_reg]);
 
                 this.log(
                     'SAVERTOR',
-                    '[', SAVERTOR_to_reg, ':', this.getOffsettedMemoryAddress(SAVERTOR_to_reg), ']',
+                    '[', SAVERTOR_to_reg, ':', this.registers[SAVERTOR_to_reg], ']',
+                    '+', SAVERTOR_offset,
                     '[', SAVERTOR_reg, ':', this.registers[SAVERTOR_reg], ']'
                 );
                 break;
@@ -639,10 +643,6 @@ export class VM {
         this.totalIterations += 1;
 
         return false;
-    }
-
-    private getOffsettedMemoryAddress(reg: number) {
-        return this.registers[reg];
     }
 
     private decodeOpcode(): Opcode {

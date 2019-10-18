@@ -211,12 +211,12 @@ export class Assembler {
                         if (op[2].addr && op[2].addr.reg) {
                             program[codeOffset] = Opcode.LOADAR;
                             program[codeOffset + 2] = op[2].addr.reg;
-                            program[codeOffset + 3] = 0;
+                            program[codeOffset + 3] = op[2].offset;
                         }
                         else if (op[2].addr) {
                             program[codeOffset] = Opcode.LOADA;
-                            program[codeOffset + 2] = op[2].addr >>> 8;
-                            program[codeOffset + 3] = op[2].addr & 255;
+                            program[codeOffset + 2] = (op[2].addr + op[2].offset) >>> 8;
+                            program[codeOffset + 3] = (op[2].addr + op[2].offset) & 255;
                         }
                         else {
                             program[codeOffset + 2] = op[2] >>> 8;
@@ -236,24 +236,24 @@ export class Assembler {
                         if (op[1].addr.reg && op[2].reg) {
                             program[codeOffset] = Opcode.SAVERTOR;
                             program[codeOffset + 1] = op[1].addr.reg;
-                            program[codeOffset + 2] = op[2].reg;
-                            program[codeOffset + 3] = op[0];
+                            program[codeOffset + 2] = op[1].offset;
+                            program[codeOffset + 3] = op[2].reg;
                         }
                         else if (op[2].reg) {
                             program[codeOffset] = Opcode.SAVER;
-                            program[codeOffset + 1] = op[1].addr >>> 8;
-                            program[codeOffset + 2] = op[1].addr & 255;
+                            program[codeOffset + 1] = (op[1].addr + op[1].offset) >>> 8;
+                            program[codeOffset + 2] = (op[1].addr + op[1].offset) & 255;
                             program[codeOffset + 3] = op[2].reg;
                         }
                         else if (op[1].addr.reg) {
                             program[codeOffset] = Opcode.SAVETOR;
                             program[codeOffset + 1] = op[1].addr.reg;
-                            program[codeOffset + 2] = op[2] & 255;
-                            program[codeOffset + 3] = op[0];
+                            program[codeOffset + 2] = op[1].offset;
+                            program[codeOffset + 3] = op[2] & 255;
                         }
                         else {
-                            program[codeOffset + 1] = op[1].addr >>> 8;
-                            program[codeOffset + 2] = op[1].addr & 255;
+                            program[codeOffset + 1] = (op[1].addr + op[1].offset) >>> 8;
+                            program[codeOffset + 2] = (op[1].addr + op[1].offset) & 255;
                             program[codeOffset + 3] = op[2];
                         }
                         break;

@@ -49,8 +49,10 @@ instr_3_reg -> "ADD"     {% id %}
              | "DIV"     {% id %}
              | "MUL"     {% id %}
 
-addr -> "[" int "]"                 {% d => { return { addr: d[1] } } %}
-      | "[" reg "]"                 {% d => { return { addr: d[1] } } %}
+addr -> "[" int "]"                 {% d => { return { addr: d[1], offset: 0 } } %}
+      | "[" reg "]"                 {% d => { return { addr: d[1], offset: 0 } } %}
+      | "[" int "," __ int "]"      {% d => { return { addr: d[1], offset: d[4] } } %}
+      | "[" reg "," __ int "]"      {% d => { return { addr: d[1], offset: d[4] } } %}
 
 
 label -> "." [A-Z] [A-Z0-9]:*       {% d => { return { label: "." + d[1] + d[2].join("") } } %}
