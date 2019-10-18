@@ -1,5 +1,5 @@
 import { Parser } from './Parser';
-import { ID_HEADER, Opcode, Directive } from '../Instruction';
+import { Directive, ID_HEADER, Opcode } from '../Instruction';
 import { AssemblerError } from './AssemblerError';
 
 
@@ -17,104 +17,27 @@ export class Assembler {
     private parser: Parser;
     private static OP_LENGTH = 4;
 
-    private DATA_MAP: {
-        [key: string]: {
-            opcode: Opcode
-            data: (0 | 8 | 16 | 'reg' | 'label' | 'reg-or-label')[]
-            opcodeWithLabel?: Opcode
-        }
+    private OPCODE_MAP: {
+        [key: string]: Opcode
     } = {
-        'HALT': {
-            opcode: Opcode.HALT,
-            data: [ ]
-        },
-
-        'LOAD': {
-            opcode: Opcode.LOAD,
-            data: [ 'reg', 16 ]
-        },
-
-        'ADD': {
-            opcode: Opcode.ADD,
-            data: [ 'reg', 'reg', 'reg' ]
-        },
-
-        'SUB': {
-            opcode: Opcode.SUB,
-            data: [ 'reg', 'reg', 'reg' ]
-        },
-
-        'MUL': {
-            opcode: Opcode.MUL,
-            data: [ 'reg', 'reg', 'reg' ]
-        },
-
-        'DIV': {
-            opcode: Opcode.DIV,
-            data: [ 'reg', 'reg', 'reg' ]
-        },
-
-        'JMP': {
-            opcode: Opcode.JMP,
-            data: [ 'reg-or-label' ],
-            opcodeWithLabel: Opcode.JMPL
-        },
-
-        'JMPF': {
-            opcode: Opcode.JMPF,
-            data: [ 'reg' ]
-        },
-
-        'JMPB': {
-            opcode: Opcode.JMPB,
-            data: [ 'reg' ]
-        },
-
-        'CMP': {
-            opcode: Opcode.CMP,
-            data: [ 'reg', 'reg' ]
-        },
-
-        'JEQ': {
-            opcode: Opcode.JEQ,
-            data: [ 'reg-or-label' ],
-            opcodeWithLabel: Opcode.JEQL
-        },
-
-        'JNEQ': {
-            opcode: Opcode.JNEQ,
-            data: [ 'reg-or-label' ],
-            opcodeWithLabel: Opcode.JNEQL
-        },
-
-        'JGT': {
-            opcode: Opcode.JGT,
-            data: [ 'reg-or-label' ],
-            opcodeWithLabel: Opcode.JGTL
-        },
-
-        'JLT': {
-            opcode: Opcode.JLT,
-            data: [ 'reg-or-label' ],
-            opcodeWithLabel: Opcode.JLTL
-        },
-
-        'JGTE': {
-            opcode: Opcode.JGTE,
-            data: [ 'reg-or-label' ],
-            opcodeWithLabel: Opcode.JGTEL
-        },
-
-        'JLTE': {
-            opcode: Opcode.JLTE,
-            data: [ 'reg-or-label' ],
-            opcodeWithLabel: Opcode.JLTEL
-        },
-
-        'PUTS': {
-            opcode: Opcode.PUTS,
-            data: [ 'label' ]
-        }
+        'HALT': Opcode.HALT,
+        'LOAD': Opcode.LOAD,
+        'ADD':  Opcode.ADD,
+        'SUB':  Opcode.SUB,
+        'MUL':  Opcode.MUL,
+        'DIV':  Opcode.DIV,
+        'JMP':  Opcode.JMP,
+        'JMPF': Opcode.JMPF,
+        'JMPB': Opcode.JMPB,
+        'CMP':  Opcode.CMP,
+        'JEQ':  Opcode.JEQ,
+        'JNEQ': Opcode.JNEQ,
+        'JGT':  Opcode.JGT,
+        'JLT':  Opcode.JLT,
+        'JGTE': Opcode.JGTE,
+        'JLTE': Opcode.JLTE,
+        'PUTS': Opcode.PUTS,
+        'SAVE': Opcode.SAVE,
     };
 
     private DIRECTIVES: string[] = [
@@ -169,7 +92,7 @@ export class Assembler {
                 op = op.op;
             }
 
-            if (this.DATA_MAP.hasOwnProperty(op[0])) {
+            if (this.OPCODE_MAP.hasOwnProperty(op[0])) {
                 if (label) {
                     labels[label] = labelsPhaseCodeOffset;
                 }
@@ -178,16 +101,16 @@ export class Assembler {
             }
         }
 
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i] === null) {
+        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            if (lines[lineIndex] === null) {
                 if (debugData) {
-                    debugData.lineMap[i] = null;
+                    debugData.lineMap[lineIndex] = null;
                 }
 
                 continue;
             }
 
-            let op = lines[i];
+            let op = lines[lineIndex];
             if (
                 op instanceof Object
                 && op.op
@@ -196,58 +119,151 @@ export class Assembler {
                 op = op.op;
             }
 
-            if (this.DATA_MAP.hasOwnProperty(op[0])) {
-                const map = this.DATA_MAP[op[0] as string];
-                program[codeOffset] = map.opcode;
 
+            if (debugData) {
+                for (let i = 1; i < op.length; i++) {
+                    if (op[i].reg) {
+                        debugData.usedRegisters = this.saveDebugUsedRegisters(debugData.usedRegisters, op[i].reg);
+                    }
+                }
+            }
 
-                if (debugData) {
-                    debugData.lineMap[i] = codeOffset;
+            if (this.OPCODE_MAP.hasOwnProperty(op[0])) {
+                const opcode = this.OPCODE_MAP[op[0]];
+                program[codeOffset] = opcode;
+
+                switch (opcode) {
+                    case Opcode.HALT:
+                        program[codeOffset + 1] = 0;
+                        program[codeOffset + 2] = 0;
+                        program[codeOffset + 3] = 0;
+                        break;
+
+                    case Opcode.ADD:
+                    case Opcode.SUB:
+                    case Opcode.DIV:
+                    case Opcode.MUL:
+                        program[codeOffset + 1] = op[1].reg;
+                        program[codeOffset + 2] = op[2].reg;
+                        program[codeOffset + 3] = op[3].reg;
+                        break;
+
+                    case Opcode.JMP:
+                    case Opcode.JMPF:
+                    case Opcode.JMPB:
+                    case Opcode.JEQ:
+                    case Opcode.JNEQ:
+                    case Opcode.JGT:
+                    case Opcode.JLT:
+                    case Opcode.JGTE:
+                    case Opcode.JLTE:
+                        if (op[1].reg) {
+                            program[codeOffset + 1] = op[1].reg;
+                        }
+                        else if (op[1].label) {
+                            program[codeOffset + 1] = labels[op[1].label];
+
+                            switch (program[codeOffset]) {
+                                case Opcode.JMP:
+                                    program[codeOffset] = Opcode.JMPL;
+                                    break;
+                                case Opcode.JEQ:
+                                    program[codeOffset] = Opcode.JEQL;
+                                    break;
+                                case Opcode.JNEQ:
+                                    program[codeOffset] = Opcode.JNEQL;
+                                    break;
+                                case Opcode.JGT:
+                                    program[codeOffset] = Opcode.JGTL;
+                                    break;
+                                case Opcode.JLT:
+                                    program[codeOffset] = Opcode.JLTL;
+                                    break;
+                                case Opcode.JGTE:
+                                    program[codeOffset] = Opcode.JGTEL;
+                                    break;
+                                case Opcode.JLTE:
+                                    program[codeOffset] = Opcode.JLTEL;
+                                    break;
+                                default:
+                                    // should never get here
+                                    throw new AssemblerError(`JMPF and JMPB don't support label param!`);
+                            }
+                        }
+                        else {
+                            // should never get here
+                            throw new AssemblerError(`Unexpected JMP (${program[codeOffset]}) param. Should be reg or label!`);
+                        }
+
+                        program[codeOffset + 2] = 0;
+                        program[codeOffset + 3] = 0;
+                        break;
+
+                    case Opcode.CMP:
+                        program[codeOffset + 1] = op[1].reg;
+                        program[codeOffset + 2] = op[2].reg;
+                        program[codeOffset + 3] = 0;
+                        break;
+
+                    case Opcode.LOAD:
+                        program[codeOffset + 1] = op[1].reg;
+
+                        if (op[2].addr && op[2].addr.reg) {
+                            program[codeOffset] = Opcode.LOADAR;
+                            program[codeOffset + 2] = op[2].addr.reg;
+                            program[codeOffset + 3] = 0;
+                        }
+                        else if (op[2].addr) {
+                            program[codeOffset] = Opcode.LOADA;
+                            program[codeOffset + 2] = op[2].addr >>> 8;
+                            program[codeOffset + 3] = op[2].addr & 255;
+                        }
+                        else {
+                            program[codeOffset + 2] = op[2] >>> 8;
+                            program[codeOffset + 3] = op[2] & 255;
+                        }
+
+                        break;
+
+                    case Opcode.PUTS:
+                        program[codeOffset + 1] = labels[op[1].label];
+                        program[codeOffset + 2] = 0;
+                        program[codeOffset + 3] = 0;
+
+                        break;
+
+                    case Opcode.SAVE:
+                        if (op[1].addr.reg && op[2].reg) {
+                            program[codeOffset] = Opcode.SAVERTOR;
+                            program[codeOffset + 1] = op[1].addr.reg;
+                            program[codeOffset + 2] = op[2].reg;
+                            program[codeOffset + 3] = op[0];
+                        }
+                        else if (op[2].reg) {
+                            program[codeOffset] = Opcode.SAVER;
+                            program[codeOffset + 1] = op[1].addr >>> 8;
+                            program[codeOffset + 2] = op[1].addr & 255;
+                            program[codeOffset + 3] = op[2].reg;
+                        }
+                        else if (op[1].addr.reg) {
+                            program[codeOffset] = Opcode.SAVETOR;
+                            program[codeOffset + 1] = op[1].addr.reg;
+                            program[codeOffset + 2] = op[2];
+                            program[codeOffset + 3] = op[0];
+                        }
+                        else {
+                            program[codeOffset + 1] = op[1].addr >>> 8;
+                            program[codeOffset + 2] = op[1].addr & 255;
+                            program[codeOffset + 3] = op[2];
+                        }
+                        break;
+
+                    default:
+                        // this should never happen
                 }
 
-                for (let dataIndex = 1; dataIndex < Assembler.OP_LENGTH; dataIndex++) {
-                    if (
-                        map.data[dataIndex - 1] === 8
-                        || map.data[dataIndex - 1] === 'reg'
-                        || (map.data[dataIndex - 1] === 'reg-or-label' && typeof op[dataIndex] === 'number')
-                    ) {
-                        program[codeOffset + dataIndex] = op[dataIndex];
-                    }
-
-                    else if (map.data[dataIndex - 1] === 16) {
-                        program[codeOffset + dataIndex] = op[dataIndex] >>> 8;
-                        program[codeOffset + dataIndex + 1] = op[dataIndex] & 255;
-
-                        dataIndex += 1;
-                    }
-
-                    else if (
-                        map.data[dataIndex - 1] === 'reg-or-label'
-                        && typeof op[dataIndex] === 'string'
-                        && map.opcodeWithLabel
-                    ) {
-                        program[codeOffset] = map.opcodeWithLabel;
-                        program[codeOffset + dataIndex] = labels[op[dataIndex]];
-                    }
-
-                    else if (map.data[dataIndex - 1] === 'label') {
-                        program[codeOffset + dataIndex] = labels[op[dataIndex]];
-                    }
-
-                    else {
-                        program[codeOffset + dataIndex] = 0;
-                    }
-
-                    if (
-                        debugData
-                        && (
-                            map.data[dataIndex - 1] === 'reg'
-                            || (map.data[dataIndex - 1] === 'reg-or-label' && typeof op[dataIndex] === 'number')
-                        )
-                        && debugData.usedRegisters.indexOf(op[dataIndex]) < 0
-                    ) {
-                        debugData.usedRegisters.push(op[dataIndex]);
-                    }
+                if (debugData) {
+                    debugData.lineMap[lineIndex] = codeOffset;
                 }
 
                 codeOffset += Assembler.OP_LENGTH;
@@ -364,5 +380,15 @@ export class Assembler {
         }
 
         return this.parser.results[0];
+    }
+
+    private saveDebugUsedRegisters(usedRegisters: number[], ... regs: number[]): number[] {
+        for (let i = 0; i < regs.length; i++) {
+            if (usedRegisters.indexOf(regs[i]) < 0) {
+                usedRegisters.push(regs[i]);
+            }
+        }
+
+        return usedRegisters;
     }
 }

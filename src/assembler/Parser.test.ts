@@ -20,7 +20,7 @@ test('JMP $1', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        [ 'JMP', 1 ]
+        [ 'JMP', { reg: 1 } ]
     ]);
 });
 
@@ -32,7 +32,7 @@ test('multiline instructions', () => {
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
         [ 'HALT' ],
-        [ 'JMP', 1 ]
+        [ 'JMP', { reg: 1 } ]
     ]);
 });
 
@@ -56,7 +56,7 @@ test('JMPF $1', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['JMPF', 1]
+        ['JMPF', { reg: 1 }]
     ]);
 });
 
@@ -68,7 +68,7 @@ test('JMPB $1', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['JMPB', 1]
+        ['JMPB', { reg: 1 }]
     ]);
 });
 
@@ -80,7 +80,7 @@ test('LOAD $1 500', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['LOAD', 1, 500]
+        ['LOAD', { reg: 1 }, 500]
     ]);
 });
 
@@ -91,7 +91,7 @@ test('ADD $1 $2 $3', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['ADD', 1, 2, 3]
+        ['ADD', { reg: 1 }, { reg: 2 }, { reg: 3 }]
     ]);
 });
 
@@ -102,7 +102,7 @@ test('SUB $1 $2 $3', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['SUB', 1, 2, 3]
+        ['SUB', { reg: 1 }, { reg: 2 }, { reg: 3 }]
     ]);
 });
 
@@ -113,7 +113,7 @@ test('MUL $1 $2 $3', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['MUL', 1, 2, 3]
+        ['MUL', { reg: 1 }, { reg: 2 }, { reg: 3 }]
     ]);
 });
 
@@ -124,7 +124,7 @@ test('DIV $1 $2 $3', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['DIV', 1, 2, 3]
+        ['DIV', { reg: 1 }, { reg: 2 }, { reg: 3 }]
     ]);
 });
 
@@ -135,7 +135,7 @@ test('CMP $1 $2', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['CMP', 1, 2]
+        ['CMP', { reg: 1 }, { reg: 2 }]
     ]);
 });
 
@@ -146,7 +146,7 @@ test('JEQ $1', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['JEQ', 1]
+        ['JEQ', { reg: 1 }]
     ]);
 });
 
@@ -166,21 +166,21 @@ test('various whitespace', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['JEQ', 1],
-        ['JEQ', 2],
-        ['JEQ', 3],
-        ['JEQ', 4],
-        ['JEQ', 5],
-        ['JEQ', 6],
-        ['JEQ', 7],
-        ['JEQ', 8],
-        ['JEQ', 9],
+        ['JEQ', { reg: 1 }],
+        ['JEQ', { reg: 2 }],
+        ['JEQ', { reg: 3 }],
+        ['JEQ', { reg: 4 }],
+        ['JEQ', { reg: 5 }],
+        ['JEQ', { reg: 6 }],
+        ['JEQ', { reg: 7 }],
+        ['JEQ', { reg: 8 }],
+        ['JEQ', { reg: 9 }],
         null,
         null,
         null,
         null,
         null,
-        ['JEQ', 10],
+        ['JEQ', { reg: 10 }],
         null,
         null
     ]);
@@ -195,9 +195,9 @@ test('various whitespace multiline', () => {
     expect(parser.results[0]).toEqual([
         null,
         null,
-        ['JEQ', 1],
+        ['JEQ', { reg: 1 }],
         null,
-        ['JEQ', 2],
+        ['JEQ', { reg: 2 }],
         null
     ]);
 });
@@ -242,7 +242,7 @@ test('JMP LABEL', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        [ 'JMP', 'LABEL' ]
+        [ 'JMP', { label: 'LABEL' } ]
     ]);
 });
 
@@ -255,10 +255,10 @@ test('various labels', () => {
     expect(parser.results[0]).toEqual([
         [ 'HALT' ],
         { label: 'LABEL1', op: [ 'HALT' ] },
-        { label: 'LABEL2', op: [ 'JMP', 1 ] },
-        [ 'MUL', 15, 1, 2 ],
-        { label: 'LABEL3', op: [ 'SUB', 2, 3, 4 ] },
-        [ 'JMP', 'FOO' ],
+        { label: 'LABEL2', op: [ 'JMP', { reg: 1 } ] },
+        [ 'MUL', { reg: 15 }, { reg: 1 }, { reg: 2 } ],
+        { label: 'LABEL3', op: [ 'SUB', { reg: 2 }, { reg: 3 }, { reg: 4 } ] },
+        [ 'JMP',  { label: 'FOO' } ],
     ]);
 });
 
@@ -295,6 +295,83 @@ test('PUTS LABEL', () => {
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['PUTS', 'LABEL']
+        ['PUTS',  { label: 'LABEL' }]
+    ]);
+});
+
+test('LOAD $1 [100]', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 [100]\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, { addr: 100 }]
+    ]);
+});
+
+test('LOAD $1 [$2]', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 [$2]\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, { addr: { reg: 2 } }]
+    ]);
+});
+
+test('SAVE [100] 10', () => {
+    const parser = new Parser();
+
+    parser.feed('SAVE [100] 10\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SAVE', { addr: 100 }, 10]
+    ]);
+});
+
+test('SAVE [$1] 10', () => {
+    const parser = new Parser();
+
+    parser.feed('SAVE [$1] 10\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SAVE', { addr: { reg: 1 } }, 10]
+    ]);
+});
+
+test('SAVE [100] $2', () => {
+    const parser = new Parser();
+
+    parser.feed('SAVE [100] $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SAVE', { addr: 100 }, { reg: 2 }]
+    ]);
+});
+
+test('SAVE [$1] $2', () => {
+    const parser = new Parser();
+
+    parser.feed('SAVE [$1] $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SAVE', { addr: { reg: 1 } }, { reg: 2 }]
+    ]);
+});
+
+test('LOAD $1 [4294967296]', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 [4294967296]\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, { addr: 4294967296 }]
     ]);
 });

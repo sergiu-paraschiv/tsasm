@@ -15,6 +15,16 @@ export enum Opcode {
     JLTE = 14,
     JEQ  = 15,
     JNEQ = 16,
+    PUTS  = 30,
+    SAVE  = 34,
+
+
+    // opcodes not exposed by assembler
+
+    HEAD  = 199,
+
+    LOADA = 32,
+    LOADAR = 33,
 
     // jumps to labels
     JMPL  = 20,
@@ -25,9 +35,9 @@ export enum Opcode {
     JGTEL = 25,
     JLTEL = 26,
 
-    PUTS  = 30,
-
-    HEAD  = 199,
+    SAVETOR = 35,
+    SAVER = 36,
+    SAVERTOR = 37,
 
     ILGL
 }

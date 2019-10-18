@@ -1,9 +1,12 @@
 import { ID_HEADER, Opcode } from '../Instruction';
 import { VMError } from './VMError';
+import { Memory } from './Memory';
 
 
 export class VM {
-    public registers: Uint32Array;
+    public debug: boolean;
+
+    public registers: Uint16Array;
     public pc: number;
     public program: Uint8Array;
     public flags: {
@@ -13,6 +16,7 @@ export class VM {
     };
     public totalIterations: number;
     public outputBuffer: Uint8Array;
+    public memory: Memory;
 
     private breakpoints: number[];
     private ignoreNextBreakpoint: boolean;
@@ -23,7 +27,9 @@ export class VM {
     private outputBufferChange: undefined | (() => void);
 
     constructor() {
-        this.registers = new Uint32Array(16);
+        this.debug = false;
+
+        this.registers = new Uint16Array(16);
         this.pc = 0;
         this.program = new Uint8Array();
         this.flags = {
@@ -33,6 +39,7 @@ export class VM {
         };
         this.totalIterations = 0;
         this.outputBuffer = new Uint8Array();
+        this.memory = new Memory(256 * 256 * 256);
 
         this.breakpoints = [];
         this.ignoreNextBreakpoint = false;
@@ -150,6 +157,8 @@ export class VM {
         this.ignoreNextBreakpoint = false;
 
         const opcode = this.decodeOpcode();
+        this.log('-> opcode', opcode, this.program[this.pc], this.program[this.pc + 1], this.program[this.pc + 2]);
+
         switch (opcode) {
             case Opcode.HALT:
                 this.next8Bits(); // padding
@@ -163,9 +172,28 @@ export class VM {
 
             case Opcode.LOAD:
                 const LOAD_register = this.next8Bits();
-                const LOAD_number = this.next16Bits();
+                const LOAD_double = this.next16Bits();
 
-                this.registers[LOAD_register] = LOAD_number;
+                this.registers[LOAD_register] = LOAD_double;
+
+                this.log('LOAD', LOAD_register, LOAD_double);
+                break;
+
+            case Opcode.LOADA:
+                const LOADA_register = this.next8Bits();
+                const LOADA_address = this.next16Bits();
+
+                this.registers[LOADA_register] = this.memory.get(LOADA_address);
+                break;
+
+            case Opcode.LOADAR:
+                const LOADAR_register = this.next8Bits();
+                const LOADAR_reg_addr = this.next8Bits();
+                this.next8Bits();
+
+                this.registers[LOADAR_register] = this.memory.get(this.getOffsettedMemoryAddress(LOADAR_reg_addr));
+
+                this.log('LOADAR', LOADAR_register, LOADAR_reg_addr, this.registers[LOADAR_register], this.registers[LOADAR_reg_addr], this.memory.get(this.getOffsettedMemoryAddress(LOADAR_reg_addr)));
                 break;
 
             case Opcode.ADD:
@@ -174,6 +202,8 @@ export class VM {
                 const ADD_register3 = this.next8Bits();
 
                 this.registers[ADD_register3] = this.registers[ADD_register1] + this.registers[ADD_register2];
+
+                this.log('ADD', ADD_register1, this.registers[ADD_register1], ADD_register2, this.registers[ADD_register2], ADD_register3, this.registers[ADD_register3]);
                 break;
 
             case Opcode.SUB:
@@ -368,6 +398,41 @@ export class VM {
                 }
                 break;
 
+            case Opcode.SAVE:
+                const SAVE_address = this.next16Bits();
+                const SAVE_int = this.next8Bits();
+
+                this.memory.set(SAVE_address, SAVE_int);
+                break;
+
+            case Opcode.SAVETOR:
+                const SAVETOR_reg = this.next8Bits();
+                const SAVETOR_int = this.next8Bits();
+                this.next8Bits(); // padding
+
+                this.log('SAVETOR', SAVETOR_reg, this.memory.size, this.getOffsettedMemoryAddress(SAVETOR_reg), SAVETOR_int);
+                this.memory.set(this.getOffsettedMemoryAddress(SAVETOR_reg), SAVETOR_int);
+
+                break;
+
+            case Opcode.SAVER:
+                const SAVER_address = this.next16Bits();
+                const SAVER_reg = this.next8Bits();
+
+                this.memory.set(SAVER_address, this.registers[SAVER_reg]);
+                break;
+
+
+            case Opcode.SAVERTOR:
+                const SAVERTOR_to_reg = this.next8Bits();
+                const SAVERTOR_reg = this.next8Bits();
+                this.next8Bits(); // padding
+
+                this.memory.set(this.getOffsettedMemoryAddress(SAVERTOR_to_reg), this.registers[SAVERTOR_reg]);
+
+                this.log('SAVERTOR', SAVERTOR_to_reg, this.getOffsettedMemoryAddress(SAVERTOR_to_reg), SAVERTOR_reg, this.registers[SAVERTOR_reg]);
+                break;
+
             default:
                 throw new VMError(`Unrecognized opcode [${opcode}] found! PC: ${this.pc} Terminating!`);
         }
@@ -375,6 +440,11 @@ export class VM {
         this.totalIterations += 1;
 
         return false;
+    }
+
+    private getOffsettedMemoryAddress(reg: number) {
+        this.log('[', reg, this.registers[reg], ']');
+        return this.registers[reg];
     }
 
     private decodeOpcode(): Opcode {
@@ -394,5 +464,13 @@ export class VM {
         let result = ((this.program[this.pc]) << 8) | this.program[this.pc + 1];
         this.pc += 2;
         return result;
+    }
+
+    private log(... args: any[]) {
+        if (!this.debug) {
+            return;
+        }
+
+        console.log(args);
     }
 }

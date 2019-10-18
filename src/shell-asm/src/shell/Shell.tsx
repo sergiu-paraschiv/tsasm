@@ -7,7 +7,7 @@ import { ParserError } from '../../../assembler/ParserError';
 
 const INITIAL_VALUE = `
 .asciiz '----------'
-BAR: .asciiz 'Done.'
+DONE: .asciiz 'Done.'
 
         LOAD $1 50
         LOAD $2 10
@@ -24,7 +24,7 @@ START:  SUB  $1 $2 $1
         JMP  START
         
         
-END:    PUTS BAR
+END:    PUTS DONE
         HALT
 .asciiz '----------'
 `;

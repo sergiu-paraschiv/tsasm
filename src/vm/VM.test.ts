@@ -1,6 +1,7 @@
 import { VM } from './VM';
 import { VMError } from './VMError';
 import { ID_HEADER, Opcode } from '../Instruction';
+// import { MemoryError } from './MemoryError';
 
 
 test('a VM is initialized', () => {
@@ -392,3 +393,147 @@ test('PUTS FOO', () => {
     expect(vm.outputBuffer).toEqual(Uint8Array.from([102, 111, 111, 0]));
 });
 
+test('SAVE [0] 10', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 0, 0, 10,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(0)).toBe(10);
+});
+
+test('SAVE [65534] 10', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 255, 254, 10,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(65534)).toBe(10);
+});
+
+test('LOAD $1 [0]', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 0, 0, 10,
+        Opcode.LOADA, 1, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(10);
+});
+
+test('LOAD $1 [$2]', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 0, 0, 10,
+        Opcode.LOAD, 2, 0, 0,
+        Opcode.LOADAR, 1, 2, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(10);
+});
+
+test('SAVE [$1] 10', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 255, 254,
+        Opcode.SAVETOR, 1, 10, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(65534)).toBe(10);
+});
+
+test('SAVE [0] $2', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 2, 0, 10,
+        Opcode.SAVER, 0, 0, 2,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(0)).toBe(10);
+});
+
+test('SAVE [0] $2 with overflowing int', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 2, 255, 254,
+        Opcode.SAVER, 0, 0, 2,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[2]).toBe(65534);
+    expect(vm.memory.get(0)).toBe(254);
+});
+
+test('SAVE [$1] $2', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 255, 254,
+        Opcode.LOAD, 2, 0, 10,
+        Opcode.SAVERTOR, 1, 2, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(65534)).toBe(10);
+});
+
+// builds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] in memory
+test('PROGRAM #3 - with memory stuff', () => {
+    const vm = new VM();
+    vm.debug = true;
+    vm.program = Uint8Array.from([
+        /* 0  */ ... ID_HEADER,
+        /* 4  */ 8, 0, 0, 0,
+        /* 8 */  Opcode.LOAD,     1,   0,  0, // put 0 in $1, our start index
+        /* 12 */ Opcode.LOAD,     2,   0,  9, // put 9 in $2, our end index
+        /* 16 */ Opcode.LOAD,     3,   0,  1, // put 1 in $3, our increment
+        /* 20 */ Opcode.LOAD,     4,   0,  24,// put 28 in $4, the start index of our "loop"
+        /* 24 */ Opcode.SAVERTOR, 1,   1,  0, // save value of $1 in memory at address [$1]
+        /* 28 */ Opcode.ADD,      1,   3,  1, // add $3 (incrementer) to $1 and save it to $1
+        /* 32 */ Opcode.CMP,      1,   2,  0, // compare $1 with $2
+        /* 36 */ Opcode.JLTE,     4,   0,  0, // jump to start of loop while $1 <= $2
+        /* 40 */ Opcode.HALT,     0,   0,  0
+    ]);
+
+    vm.run();
+
+    expect(vm.memory.get(0)).toBe(0);
+    expect(vm.memory.get(1)).toBe(1);
+    expect(vm.memory.get(2)).toBe(2);
+    expect(vm.memory.get(3)).toBe(3);
+    expect(vm.memory.get(4)).toBe(4);
+    expect(vm.memory.get(5)).toBe(5);
+    expect(vm.memory.get(6)).toBe(6);
+    expect(vm.memory.get(7)).toBe(7);
+    expect(vm.memory.get(8)).toBe(8);
+    expect(vm.memory.get(9)).toBe(9);
+});

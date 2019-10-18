@@ -11,9 +11,9 @@ var grammar = {
     {"name": "segment_w", "symbols": ["_", "__n"], "postprocess": d => null},
     {"name": "segment_w", "symbols": ["_", "segment", "_", "__n"], "postprocess": d => d[1]},
     {"name": "segment", "symbols": ["instr"], "postprocess": id},
-    {"name": "segment", "symbols": ["label", {"literal":":"}, "__", "instr"], "postprocess": d => { return { label: d[0], op: d[3] } }},
+    {"name": "segment", "symbols": ["label", {"literal":":"}, "__", "instr"], "postprocess": d => { return { label: d[0].label, op: d[3] } }},
     {"name": "segment", "symbols": ["dir"], "postprocess": id},
-    {"name": "segment", "symbols": ["label", {"literal":":"}, "__", "dir"], "postprocess": d => { return { label: d[0], op: d[3] } }},
+    {"name": "segment", "symbols": ["label", {"literal":":"}, "__", "dir"], "postprocess": d => { return { label: d[0].label, op: d[3] } }},
     {"name": "dir$string$1", "symbols": [{"literal":"."}, {"literal":"a"}, {"literal":"s"}, {"literal":"c"}, {"literal":"i"}, {"literal":"i"}, {"literal":"z"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "dir$ebnf$1", "symbols": []},
     {"name": "dir$ebnf$1", "symbols": ["dir$ebnf$1", /./], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
@@ -25,6 +25,12 @@ var grammar = {
     {"name": "instr", "symbols": ["instr_3_reg", "__", "reg", "__", "reg", "__", "reg"], "postprocess": d => [ d[0], d[2], d[4], d[6] ]},
     {"name": "instr$string$1", "symbols": [{"literal":"L"}, {"literal":"O"}, {"literal":"A"}, {"literal":"D"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "instr", "symbols": ["instr$string$1", "__", "reg", "__", "int"], "postprocess": d => [ d[0], d[2], d[4] ]},
+    {"name": "instr$string$2", "symbols": [{"literal":"L"}, {"literal":"O"}, {"literal":"A"}, {"literal":"D"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "instr", "symbols": ["instr$string$2", "__", "reg", "__", "addr"], "postprocess": d => [ d[0], d[2], d[4] ]},
+    {"name": "instr$string$3", "symbols": [{"literal":"S"}, {"literal":"A"}, {"literal":"V"}, {"literal":"E"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "instr", "symbols": ["instr$string$3", "__", "addr", "__", "int"], "postprocess": d => [ d[0], d[2], d[4] ]},
+    {"name": "instr$string$4", "symbols": [{"literal":"S"}, {"literal":"A"}, {"literal":"V"}, {"literal":"E"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "instr", "symbols": ["instr$string$4", "__", "addr", "__", "reg"], "postprocess": d => [ d[0], d[2], d[4] ]},
     {"name": "instr_no_op$string$1", "symbols": [{"literal":"H"}, {"literal":"A"}, {"literal":"L"}, {"literal":"T"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "instr_no_op", "symbols": ["instr_no_op$string$1"], "postprocess": id},
     {"name": "instr_1_label$string$1", "symbols": [{"literal":"J"}, {"literal":"M"}, {"literal":"P"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -71,18 +77,20 @@ var grammar = {
     {"name": "instr_3_reg", "symbols": ["instr_3_reg$string$3"], "postprocess": id},
     {"name": "instr_3_reg$string$4", "symbols": [{"literal":"M"}, {"literal":"U"}, {"literal":"L"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "instr_3_reg", "symbols": ["instr_3_reg$string$4"], "postprocess": id},
+    {"name": "addr", "symbols": [{"literal":"["}, "int", {"literal":"]"}], "postprocess": d => { return { addr: d[1] } }},
+    {"name": "addr", "symbols": [{"literal":"["}, "reg", {"literal":"]"}], "postprocess": d => { return { addr: d[1] } }},
     {"name": "label$ebnf$1", "symbols": []},
     {"name": "label$ebnf$1", "symbols": ["label$ebnf$1", /[A-Z0-9]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "label", "symbols": [{"literal":"."}, /[A-Z]/, "label$ebnf$1"], "postprocess": d => "." + d[1] + d[2].join("")},
+    {"name": "label", "symbols": [{"literal":"."}, /[A-Z]/, "label$ebnf$1"], "postprocess": d => { return { label: "." + d[1] + d[2].join("") } }},
     {"name": "label$ebnf$2", "symbols": []},
     {"name": "label$ebnf$2", "symbols": ["label$ebnf$2", /[A-Z0-9]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "label", "symbols": [/[A-Z]/, "label$ebnf$2"], "postprocess": d => d[0] + d[1].join("")},
+    {"name": "label", "symbols": [/[A-Z]/, "label$ebnf$2"], "postprocess": d => { return { label: d[0] + d[1].join("") } }},
     {"name": "reg", "symbols": [{"literal":"$"}, "int"], "postprocess":  (d, l, reject) => {
             if (d[1] > 15) {
                 return reject;
             }
         
-            return d[1];
+            return { reg: d[1] };
         } },
     {"name": "int", "symbols": [/[0-9]/], "postprocess": d => parseInt(d, 10)},
     {"name": "int", "symbols": ["int", /[0-9]/], "postprocess": d => parseInt(d[0] + d[1], 10)},

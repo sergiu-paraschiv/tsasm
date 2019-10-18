@@ -328,7 +328,7 @@ test('provides sorted list of registers used if debug data is requested', () => 
 
     expect(data.debugData!.usedRegisters).toEqual([
         1, 2, 3, 5, 6, 10
-    ])
+    ]);
 });
 
 test('provides list of labels and pcs for them if debug data is requested', () => {
@@ -518,5 +518,89 @@ test('PUTS LABEL', () => {
         ... ID_HEADER,
         8, 0, 0, 0,
         Opcode.PUTS, 8, 0, 0
+    ]));
+});
+
+test('LOAD $1 [500]', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('LOAD $1 [500]');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOADA, 1, 1, 244
+    ]));
+});
+
+test('LOAD $1 [$2]', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('LOAD $1 [$2]');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOADAR, 1, 2, 0
+    ]));
+});
+
+test('SAVE [0] 10', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [0] 10');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 0, 0, 10
+    ]));
+});
+
+test('SAVE [65535] 10', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [65535] 10');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 255, 255, 10
+    ]));
+});
+
+test('SAVE [$1] 10', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [$1] 10');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVETOR, 1, 10, 0
+    ]));
+});
+
+test('SAVE [500] $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [500] $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVER, 1, 244, 2
+    ]));
+});
+
+test('SAVE [$1] $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [$1] $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVERTOR, 1, 2, 0
     ]));
 });
