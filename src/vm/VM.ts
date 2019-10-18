@@ -6,7 +6,7 @@ import { Memory } from './Memory';
 export class VM {
     public debug: boolean;
 
-    public registers: Uint16Array;
+    public registers: Uint32Array;
     public pc: number;
     public program: Uint8Array;
     public flags: {
@@ -29,7 +29,7 @@ export class VM {
     constructor() {
         this.debug = false;
 
-        this.registers = new Uint16Array(16);
+        this.registers = new Uint32Array(16);
         this.pc = 0;
         this.program = new Uint8Array();
         this.flags = {
@@ -39,7 +39,7 @@ export class VM {
         };
         this.totalIterations = 0;
         this.outputBuffer = new Uint8Array();
-        this.memory = new Memory(256 * 256 * 256);
+        this.memory = new Memory(256 * 256 * 256 - 1);
 
         this.breakpoints = [];
         this.ignoreNextBreakpoint = false;
@@ -157,12 +157,14 @@ export class VM {
         this.ignoreNextBreakpoint = false;
 
         const opcode = this.decodeOpcode();
-        this.log('-> opcode', opcode, this.program[this.pc], this.program[this.pc + 1], this.program[this.pc + 2]);
+        // this.log('-> opcode', opcode, this.program[this.pc], this.program[this.pc + 1], this.program[this.pc + 2]);
 
         switch (opcode) {
             case Opcode.HALT:
                 this.next8Bits(); // padding
                 this.next16Bits(); // padding
+
+                this.log('HALT');
 
                 if (this.stopCallback) {
                     this.stopCallback();
@@ -176,7 +178,11 @@ export class VM {
 
                 this.registers[LOAD_register] = LOAD_double;
 
-                this.log('LOAD', LOAD_register, LOAD_double);
+                this.log(
+                    'LOAD',
+                    '[', LOAD_register, ':', this.registers[LOAD_register], ']',
+                    '[', LOAD_double, ']'
+                );
                 break;
 
             case Opcode.LOADA:
@@ -184,6 +190,12 @@ export class VM {
                 const LOADA_address = this.next16Bits();
 
                 this.registers[LOADA_register] = this.memory.get(LOADA_address);
+
+                this.log(
+                    'LOADA',
+                    '[', LOADA_register, ':', this.registers[LOADA_register], ']',
+                    '[', LOADA_address, ':', this.memory.get(LOADA_address), ']'
+                );
                 break;
 
             case Opcode.LOADAR:
@@ -193,7 +205,11 @@ export class VM {
 
                 this.registers[LOADAR_register] = this.memory.get(this.getOffsettedMemoryAddress(LOADAR_reg_addr));
 
-                this.log('LOADAR', LOADAR_register, LOADAR_reg_addr, this.registers[LOADAR_register], this.registers[LOADAR_reg_addr], this.memory.get(this.getOffsettedMemoryAddress(LOADAR_reg_addr)));
+                this.log(
+                    'LOADAR',
+                    '[', LOADAR_register, ':', this.registers[LOADAR_register], ']',
+                    '[', LOADAR_reg_addr, ':', this.memory.get(this.getOffsettedMemoryAddress(LOADAR_reg_addr)), ']'
+                );
                 break;
 
             case Opcode.ADD:
@@ -201,9 +217,16 @@ export class VM {
                 const ADD_register2 = this.next8Bits();
                 const ADD_register3 = this.next8Bits();
 
+                const ADD_pre = this.registers[ADD_register3];
                 this.registers[ADD_register3] = this.registers[ADD_register1] + this.registers[ADD_register2];
 
-                this.log('ADD', ADD_register1, this.registers[ADD_register1], ADD_register2, this.registers[ADD_register2], ADD_register3, this.registers[ADD_register3]);
+                this.log(
+                    'ADD',
+                    '[', ADD_register1, ':', this.registers[ADD_register1], ']',
+                    '[', ADD_register2, ':', this.registers[ADD_register2], ']',
+                    '[', ADD_register3, ':', ADD_pre, ']',
+                    'res:', this.registers[ADD_register3]
+                );
                 break;
 
             case Opcode.SUB:
@@ -211,7 +234,16 @@ export class VM {
                 const SUB_register2 = this.next8Bits();
                 const SUB_register3 = this.next8Bits();
 
+                const SUB_pre = this.registers[SUB_register3];
                 this.registers[SUB_register3] = this.registers[SUB_register1] - this.registers[SUB_register2];
+
+                this.log(
+                    'SUB',
+                    '[', SUB_register1, ':', this.registers[SUB_register1], ']',
+                    '[', SUB_register2, ':', this.registers[SUB_register2], ']',
+                    '[', SUB_register3, ':', SUB_pre, ']',
+                    'res:', this.registers[SUB_register3]
+                );
                 break;
 
             case Opcode.MUL:
@@ -219,7 +251,16 @@ export class VM {
                 const MUL_register2 = this.next8Bits();
                 const MUL_register3 = this.next8Bits();
 
+                const MUL_pre = this.registers[MUL_register3];
                 this.registers[MUL_register3] = this.registers[MUL_register1] * this.registers[MUL_register2];
+
+                this.log(
+                    'MUL',
+                    '[', MUL_register1, ':', this.registers[MUL_register1], ']',
+                    '[', MUL_register2, ':', this.registers[MUL_register2], ']',
+                    '[', MUL_register3, ':', MUL_pre, ']',
+                    'res:', this.registers[MUL_register3]
+                );
                 break;
 
             case Opcode.DIV:
@@ -227,8 +268,18 @@ export class VM {
                 const DIV_register2 = this.next8Bits();
                 const DIV_register3 = this.next8Bits();
 
+                const DIV_pre = this.registers[DIV_register3];
                 this.registers[DIV_register3] = Math.trunc(this.registers[DIV_register1] / this.registers[DIV_register2]);
                 this.flags.remainder = this.registers[DIV_register1] % this.registers[DIV_register2];
+
+                this.log(
+                    'DIV',
+                    '[', DIV_register1, ':', this.registers[DIV_register1], ']',
+                    '[', DIV_register2, ':', this.registers[DIV_register2], ']',
+                    '[', DIV_register3, ':', DIV_pre, ']',
+                    'res:', this.registers[DIV_register3],
+                    'remainder:', this.flags.remainder
+                );
                 break;
 
             case Opcode.JMP:
@@ -236,6 +287,12 @@ export class VM {
                 this.next16Bits(); // padding
 
                 this.pc = this.registers[JMP_pos];
+
+                this.log(
+                    'JMP',
+                    '[', JMP_pos, ':', this.registers[JMP_pos], ']',
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JMPF:
@@ -243,6 +300,12 @@ export class VM {
                 this.next16Bits(); // padding
 
                 this.pc += this.registers[JMPF_offset];
+
+                this.log(
+                    'JMPF',
+                    '[', JMPF_offset, ':', this.registers[JMPF_offset], ']',
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JMPB:
@@ -250,17 +313,30 @@ export class VM {
                 this.next16Bits(); // padding
 
                 this.pc -= this.registers[JMPB_offset];
+
+                this.log(
+                    'JMPB',
+                    '[', JMPB_offset, ':', this.registers[JMPB_offset], ']',
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.CMP:
-                const EQ_register1 = this.next8Bits();
-                const EQ_register2 = this.next8Bits();
+                const CMP_register1 = this.next8Bits();
+                const CMP_register2 = this.next8Bits();
                 this.next8Bits(); // padding
 
-                const res = this.registers[EQ_register1] - this.registers[EQ_register2];
-
+                const res = this.registers[CMP_register1] - this.registers[CMP_register2];
                 this.flags.equal = res === 0;
                 this.flags.negative = res < 0;
+
+                this.log(
+                    'CMP',
+                    '[', CMP_register1, ':', this.registers[CMP_register1], ']',
+                    '[', CMP_register2, ':', this.registers[CMP_register2], ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative
+                );
                 break;
 
             case Opcode.JEQ:
@@ -270,6 +346,13 @@ export class VM {
                 if (this.flags.equal) {
                     this.pc = this.registers[JEQ_pos];
                 }
+
+                this.log(
+                    'JEQ',
+                    '[', JEQ_pos, ':', this.registers[JEQ_pos], ']',
+                    'equal:', this.flags.equal,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JNEQ:
@@ -279,6 +362,13 @@ export class VM {
                 if (!this.flags.equal) {
                     this.pc = this.registers[JNEQ_pos];
                 }
+
+                this.log(
+                    'JNEQ',
+                    '[', JNEQ_pos, ':', this.registers[JNEQ_pos], ']',
+                    'equal:', this.flags.equal,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JGT:
@@ -288,6 +378,14 @@ export class VM {
                 if (!this.flags.equal && !this.flags.negative) {
                     this.pc = this.registers[JGT_pos];
                 }
+
+                this.log(
+                    'JGT',
+                    '[', JGT_pos, ':', this.registers[JGT_pos], ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JLT:
@@ -297,6 +395,14 @@ export class VM {
                 if (!this.flags.equal && this.flags.negative) {
                     this.pc = this.registers[JLT_pos];
                 }
+
+                this.log(
+                    'JLT',
+                    '[', JLT_pos, ':', this.registers[JLT_pos], ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JGTE:
@@ -306,6 +412,14 @@ export class VM {
                 if (this.flags.equal || !this.flags.negative) {
                     this.pc = this.registers[JGTE_pos];
                 }
+
+                this.log(
+                    'JGTE',
+                    '[', JGTE_pos, ':', this.registers[JGTE_pos], ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JLTE:
@@ -315,6 +429,14 @@ export class VM {
                 if (this.flags.equal || this.flags.negative) {
                     this.pc = this.registers[JLTE_pos];
                 }
+
+                this.log(
+                    'JLTE',
+                    '[', JLTE_pos, ':', this.registers[JLTE_pos], ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JMPL:
@@ -322,6 +444,12 @@ export class VM {
                 this.next16Bits(); // padding
 
                 this.pc = JMPL_pos;
+
+                this.log(
+                    'JMPL',
+                    '[', JMPL_pos, ']',
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JEQL:
@@ -331,6 +459,13 @@ export class VM {
                 if (this.flags.equal) {
                     this.pc = JEQL_pos;
                 }
+
+                this.log(
+                    'JEQL',
+                    '[', JEQL_pos, ']',
+                    'equal:', this.flags.equal,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JNEQL:
@@ -340,6 +475,13 @@ export class VM {
                 if (!this.flags.equal) {
                     this.pc = JNEQL_pos;
                 }
+
+                this.log(
+                    'JNEQL',
+                    '[', JNEQL_pos, ']',
+                    'equal:', this.flags.equal,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JGTL:
@@ -349,6 +491,14 @@ export class VM {
                 if (!this.flags.equal && !this.flags.negative) {
                     this.pc = JGTL_pos;
                 }
+
+                this.log(
+                    'JGTL',
+                    '[', JGTL_pos, ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JLTL:
@@ -358,6 +508,14 @@ export class VM {
                 if (!this.flags.equal && this.flags.negative) {
                     this.pc = JLTL_pos;
                 }
+
+                this.log(
+                    'JLTL',
+                    '[', JLTL_pos, ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JGTEL:
@@ -367,6 +525,14 @@ export class VM {
                 if (this.flags.equal || !this.flags.negative) {
                     this.pc = JGTEL_pos;
                 }
+
+                this.log(
+                    'JGTEL',
+                    '[', JGTEL_pos, ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.JLTEL:
@@ -376,6 +542,14 @@ export class VM {
                 if (this.flags.equal || this.flags.negative) {
                     this.pc = JLTEL_pos;
                 }
+
+                this.log(
+                    'JLTEL',
+                    '[', JLTEL_pos, ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative,
+                    'pc:', this.pc
+                );
                 break;
 
             case Opcode.PUTS:
@@ -396,6 +570,11 @@ export class VM {
                 if (this.outputBufferChange) {
                     this.outputBufferChange();
                 }
+
+                this.log(
+                    'PUTS',
+                    '[', PUTS_label_addr, ':', str, ']'
+                );
                 break;
 
             case Opcode.SAVE:
@@ -403,6 +582,12 @@ export class VM {
                 const SAVE_int = this.next8Bits();
 
                 this.memory.set(SAVE_address, SAVE_int);
+
+                this.log(
+                    'SAVE',
+                    '[', SAVE_address, ']',
+                    '[', SAVE_int, ']',
+                );
                 break;
 
             case Opcode.SAVETOR:
@@ -410,9 +595,13 @@ export class VM {
                 const SAVETOR_int = this.next8Bits();
                 this.next8Bits(); // padding
 
-                this.log('SAVETOR', SAVETOR_reg, this.memory.size, this.getOffsettedMemoryAddress(SAVETOR_reg), SAVETOR_int);
                 this.memory.set(this.getOffsettedMemoryAddress(SAVETOR_reg), SAVETOR_int);
 
+                this.log(
+                    'SAVETOR',
+                    '[', SAVETOR_reg, ':', this.getOffsettedMemoryAddress(SAVETOR_reg), ']',
+                    '[', SAVETOR_int, ']',
+                );
                 break;
 
             case Opcode.SAVER:
@@ -420,6 +609,12 @@ export class VM {
                 const SAVER_reg = this.next8Bits();
 
                 this.memory.set(SAVER_address, this.registers[SAVER_reg]);
+
+                this.log(
+                    'SAVER',
+                    '[', SAVER_address, ':', this.registers[SAVER_reg], ']',
+                    '[', SAVER_reg, ']'
+                );
                 break;
 
 
@@ -430,7 +625,11 @@ export class VM {
 
                 this.memory.set(this.getOffsettedMemoryAddress(SAVERTOR_to_reg), this.registers[SAVERTOR_reg]);
 
-                this.log('SAVERTOR', SAVERTOR_to_reg, this.getOffsettedMemoryAddress(SAVERTOR_to_reg), SAVERTOR_reg, this.registers[SAVERTOR_reg]);
+                this.log(
+                    'SAVERTOR',
+                    '[', SAVERTOR_to_reg, ':', this.getOffsettedMemoryAddress(SAVERTOR_to_reg), ']',
+                    '[', SAVERTOR_reg, ':', this.registers[SAVERTOR_reg], ']'
+                );
                 break;
 
             default:
@@ -443,7 +642,6 @@ export class VM {
     }
 
     private getOffsettedMemoryAddress(reg: number) {
-        this.log('[', reg, this.registers[reg], ']');
         return this.registers[reg];
     }
 
@@ -471,6 +669,6 @@ export class VM {
             return;
         }
 
-        console.log(args);
+        console.log(args.join(' '));
     }
 }

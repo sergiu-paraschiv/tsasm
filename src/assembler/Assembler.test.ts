@@ -569,6 +569,18 @@ test('SAVE [65535] 10', () => {
     ]));
 });
 
+test('SAVE [65535] 500, with int overflow', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [65535] 500');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 255, 255, 244
+    ]));
+});
+
 test('SAVE [$1] 10', () => {
     const assembler = new Assembler();
 

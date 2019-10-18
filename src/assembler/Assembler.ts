@@ -248,7 +248,7 @@ export class Assembler {
                         else if (op[1].addr.reg) {
                             program[codeOffset] = Opcode.SAVETOR;
                             program[codeOffset + 1] = op[1].addr.reg;
-                            program[codeOffset + 2] = op[2];
+                            program[codeOffset + 2] = op[2] & 255;
                             program[codeOffset + 3] = op[0];
                         }
                         else {
