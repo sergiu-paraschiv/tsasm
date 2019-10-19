@@ -41,7 +41,25 @@ test('ADD', () => {
     expect(vm.registers[2]).toBe(510);
 });
 
-test('opcode SUB', () => {
+test('ADD with negative numbers 1', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.registers[1] = -10;
+    vm.program = Uint8Array.from([Opcode.ADD, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(490);
+});
+
+test('ADD with negative numbers 2', () => {
+    const vm = new VM();
+    vm.registers[0] = -500;
+    vm.registers[1] = -10;
+    vm.program = Uint8Array.from([Opcode.ADD, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(-510);
+});
+
+test('SUB', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 10;
@@ -50,10 +68,46 @@ test('opcode SUB', () => {
     expect(vm.registers[2]).toBe(490);
 });
 
+test('SUB with negative numbers 1', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.registers[1] = -10;
+    vm.program = Uint8Array.from([Opcode.SUB, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(510);
+});
+
+test('SUB with negative numbers 2', () => {
+    const vm = new VM();
+    vm.registers[0] = -500;
+    vm.registers[1] = 10;
+    vm.program = Uint8Array.from([Opcode.SUB, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(-510);
+});
+
 test('MUL', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 10;
+    vm.program = Uint8Array.from([Opcode.MUL, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(5000);
+});
+
+test('MUL with negative numbers 1', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.registers[1] = -10;
+    vm.program = Uint8Array.from([Opcode.MUL, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(-5000);
+});
+
+test('MUL with negative numbers 2', () => {
+    const vm = new VM();
+    vm.registers[0] = -500;
+    vm.registers[1] = -10;
     vm.program = Uint8Array.from([Opcode.MUL, 0, 1, 2]);
     vm.exec();
     expect(vm.registers[2]).toBe(5000);
@@ -68,7 +122,7 @@ test('DIV (no remainder)', () => {
     expect(vm.registers[2]).toBe(50);
 });
 
-test('DIV (remainder)', () => {
+test('DIV with remainder', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 9;
@@ -77,6 +131,35 @@ test('DIV (remainder)', () => {
     expect(vm.registers[2]).toBe(55);
     expect(vm.flags.remainder).toBe(5);
 });
+
+test('DIV with negative numbers 1', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.registers[1] = -10;
+    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(-50);
+});
+
+test('DIV with negative numbers 2', () => {
+    const vm = new VM();
+    vm.registers[0] = -500;
+    vm.registers[1] = -10;
+    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(50);
+});
+
+test('DIV with negative number and remainder', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.registers[1] = -9;
+    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(-55);
+    expect(vm.flags.remainder).toBe(5);
+});
+
 
 test('JMP', () => {
     const vm = new VM();
@@ -115,6 +198,21 @@ test('CMP equal flag', () => {
 
     vm.exec();
     expect(vm.flags.equal).toBe(false);
+});
+
+test('CMP negative numbers', () => {
+    const vm = new VM();
+    vm.registers[0] = -2;
+    vm.registers[1] = 2;
+
+    vm.program = Uint8Array.from([Opcode.CMP, 0, 1, 0]);
+    vm.exec();
+    expect(vm.flags.equal).toBe(false);
+
+    vm.registers[1] = -2;
+
+    vm.exec();
+    expect(vm.flags.equal).toBe(true);
 });
 
 test('CMP negative flag', () => {

@@ -13,7 +13,6 @@ test('HALT', () => {
     ]);
 });
 
-
 test('JMP $1', () => {
     const parser = new Parser();
 
@@ -61,7 +60,6 @@ test('JMPF $1', () => {
     ]);
 });
 
-
 test('JMPB $1', () => {
     const parser = new Parser();
 
@@ -72,7 +70,6 @@ test('JMPB $1', () => {
         ['JMPB', { reg: 1 }]
     ]);
 });
-
 
 test('LOAD $1 500', () => {
     const parser = new Parser();
@@ -311,16 +308,36 @@ test('LOAD $1 [500]', () => {
     ]);
 });
 
-test('LOAD $1 [100, 255]', () => {
+test('LOAD $1 [100, 127]', () => {
     const parser = new Parser();
 
-    parser.feed('LOAD $1 [100, 255]\n');
+    parser.feed('LOAD $1 [100, 127]\n');
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['LOAD', { reg: 1 }, { addr: 100, offset: 255 }]
+        ['LOAD', { reg: 1 }, { addr: 100, offset: 127 }]
     ]);
 });
+
+test('LOAD $1 [100, -101]', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('LOAD $1 [100, -101]\n');
+    }).toThrowError(ParserError);
+});
+
+test('LOAD $1 [100, -99]', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 [100, -99]\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, { addr: 100, offset: -99 }]
+    ]);
+});
+
 
 test('LOAD $1 [$2]', () => {
     const parser = new Parser();
@@ -333,14 +350,14 @@ test('LOAD $1 [$2]', () => {
     ]);
 });
 
-test('LOAD $1 [$2, 255]', () => {
+test('LOAD $1 [$2, 127]', () => {
     const parser = new Parser();
 
-    parser.feed('LOAD $1 [$2, 255]\n');
+    parser.feed('LOAD $1 [$2, 127]\n');
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['LOAD', { reg: 1 }, { addr: { reg: 2 }, offset: 255 }]
+        ['LOAD', { reg: 1 }, { addr: { reg: 2 }, offset: 127 }]
     ]);
 });
 
@@ -355,14 +372,14 @@ test('SAVE [500] 10', () => {
     ]);
 });
 
-test('SAVE [100, 255] 10', () => {
+test('SAVE [100, 127] 10', () => {
     const parser = new Parser();
 
-    parser.feed('SAVE [100, 255] 10\n');
+    parser.feed('SAVE [100, 127] 10\n');
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['SAVE', { addr: 100, offset: 255 }, 10]
+        ['SAVE', { addr: 100, offset: 127 }, 10]
     ]);
 });
 
@@ -377,14 +394,14 @@ test('SAVE [$1] 10', () => {
     ]);
 });
 
-test('SAVE [$1, 255] 10', () => {
+test('SAVE [$1, 127] 10', () => {
     const parser = new Parser();
 
-    parser.feed('SAVE [$1, 255] 10\n');
+    parser.feed('SAVE [$1, 127] 10\n');
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['SAVE', { addr: { reg: 1 }, offset: 255 }, 10]
+        ['SAVE', { addr: { reg: 1 }, offset: 127 }, 10]
     ]);
 });
 
@@ -399,14 +416,14 @@ test('SAVE [500] $2', () => {
     ]);
 });
 
-test('SAVE [100, 255] $2', () => {
+test('SAVE [100, 127] $2', () => {
     const parser = new Parser();
 
-    parser.feed('SAVE [100, 255] $2\n');
+    parser.feed('SAVE [100, 127] $2\n');
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['SAVE', { addr: 100, offset: 255 }, { reg: 2 }]
+        ['SAVE', { addr: 100, offset: 127 }, { reg: 2 }]
     ]);
 });
 
@@ -421,25 +438,25 @@ test('SAVE [$1] $2', () => {
     ]);
 });
 
-test('SAVE [$1, 255] $2', () => {
+test('SAVE [$1, 127] $2', () => {
     const parser = new Parser();
 
-    parser.feed('SAVE [$1, 255] $2\n');
+    parser.feed('SAVE [$1, 127] $2\n');
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['SAVE', { addr: { reg: 1 }, offset: 255 }, { reg: 2 }]
+        ['SAVE', { addr: { reg: 1 }, offset: 127 }, { reg: 2 }]
     ]);
 });
 
-test('LOAD $1 [255, 255]', () => {
+test('LOAD $1 [255, 127]', () => {
     const parser = new Parser();
 
-    parser.feed('LOAD $1 [255, 255]\n');
+    parser.feed('LOAD $1 [255, 127]\n');
 
     expect(parser.results.length).toBe(1);
     expect(parser.results[0]).toEqual([
-        ['LOAD', { reg: 1 }, { addr: 255, offset: 255 }]
+        ['LOAD', { reg: 1 }, { addr: 255, offset: 127 }]
     ]);
 });
 
@@ -539,7 +556,6 @@ test('CALL LABEL', () => {
     ]);
 });
 
-
 test('RET', () => {
     const parser = new Parser();
 
@@ -551,5 +567,236 @@ test('RET', () => {
     ]);
 });
 
+test('LOAD $1 1 + 2', () => {
+    const parser = new Parser();
 
+    parser.feed('LOAD $1 1 + 2\n');
 
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 1 + 2]
+    ]);
+});
+
+test('LOAD $1 2 * 2', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 2 * 2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 2 * 2]
+    ]);
+});
+
+test('LOAD $1 2 ^ 3', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 2 ^ 3\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, Math.pow(2, 3)]
+    ]);
+});
+
+test('LOAD $1 2 - 1', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 2 - 1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 2 - 1]
+    ]);
+});
+
+test('LOAD $1 4 / 2', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 4 / 2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 4 / 2]
+    ]);
+});
+
+test('LOAD $1 1 + 2 + 3', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 1 + 2 + 3\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 1 + 2 + 3]
+    ]);
+});
+
+test('LOAD $1 1 * 2 + 3', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 1 * 2 + 3\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 1 * 2 + 3]
+    ]);
+});
+
+test('LOAD $1 1 + 2 * 3', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 1 + 2 * 3\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 1 + 2 * 3]
+    ]);
+});
+
+test('LOAD $1 4 / 2 * 2', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 4 / 2 * 2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 4 / 2 * 2]
+    ]);
+});
+
+test('LOAD $1 2 ^ 3 * 2 + 3', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 2 ^ 3 * 2 + 3\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, Math.pow(2, 3) * 2 + 3]
+    ]);
+});
+
+test('LOAD $1 3 + 2 * 3 ^ 2', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 3 + 2 * 3 ^ 2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, 3 + 2 * Math.pow(3, 2)]
+    ]);
+});
+
+test('SAVE [$1] -129', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [$1] -129\n');
+    }).toThrowError(ParserError);
+});
+
+test('LOAD $1 -1', () => {
+    const parser = new Parser();
+
+    parser.feed('LOAD $1 -1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['LOAD', { reg: 1 }, -1]
+    ]);
+});
+
+test('SAVE [$1] 0', () => {
+    const parser = new Parser();
+
+    parser.feed('SAVE [$1] 0\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SAVE', { addr: { reg: 1 }, offset: 0 }, 0]
+    ]);
+});
+
+test('SAVE [$1] 127', () => {
+    const parser = new Parser();
+
+    parser.feed('SAVE [$1] 127\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SAVE', { addr: { reg: 1 }, offset: 0 }, 127]
+    ]);
+});
+
+test('SAVE [$1] 128', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [$1] 128\n');
+    }).toThrowError(ParserError);
+});
+
+test('SAVE [$1, -129] 0', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [$1, -129] 0\n');
+    }).toThrowError(ParserError);
+});
+
+test('SAVE [$1, 128] 0', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [$1, 128] 0\n');
+    }).toThrowError(ParserError);
+});
+
+test('SAVE [-1, 0] 0', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [-1, 0] 0\n');
+    }).toThrowError(ParserError);
+});
+
+test('SAVE [256, 0] 0', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [256, 0] 0\n');
+    }).toThrowError(ParserError);
+});
+
+test('SAVE [-1] 0', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [-1] 0\n');
+    }).toThrowError(ParserError);
+});
+
+test('SAVE [65536] 0', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('SAVE [65536] 0\n');
+    }).toThrowError(ParserError);
+});
+
+test('LOAD $1 -32769', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('LOAD $1 -32769\n');
+    }).toThrowError(ParserError);
+});
+
+test('LOAD $1 32768', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('LOAD $1 32768\n');
+    }).toThrowError(ParserError);
+});
