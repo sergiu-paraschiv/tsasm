@@ -1,4 +1,5 @@
 import { Parser } from './Parser';
+import { ParserError } from './ParserError';
 
 
 test('HALT', () => {
@@ -441,3 +442,89 @@ test('LOAD $1 [255, 255]', () => {
         ['LOAD', { reg: 1 }, { addr: 255, offset: 255 }]
     ]);
 });
+
+test('PUSH $1', () => {
+    const parser = new Parser();
+
+    parser.feed('PUSH $1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['PUSH', { reg: 1 }]
+    ]);
+});
+
+test('POP $1', () => {
+    const parser = new Parser();
+
+    parser.feed('POP $1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['POP', { reg: 1 }]
+    ]);
+});
+
+test('PUSH { $1 }', () => {
+    const parser = new Parser();
+
+    parser.feed('PUSH { $1 }\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['PUSH', { reglist: [ 1 ] }]
+    ]);
+});
+
+test('POP { $1 }', () => {
+    const parser = new Parser();
+
+    parser.feed('POP { $1 }\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['POP', { reglist: [ 1 ] }]
+    ]);
+});
+
+test('PUSH { $5 $2 $1 $0 }', () => {
+    const parser = new Parser();
+
+    parser.feed('PUSH { $5 $2 $1 $0 }\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['PUSH', { reglist: [ 5, 2, 1, 0 ] }]
+    ]);
+});
+
+test('PUSH { $0 $1 $2 $3 $10 }', () => {
+    const parser = new Parser();
+
+    parser.feed('PUSH { $0 $1 $2 $3 $10 }\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['PUSH', { reglist: [ 0, 1, 2, 3, 10 ] }]
+    ]);
+});
+
+test('PUSH { $0 $1 $2 $3 $4 $5 }', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('PUSH { $0 $1 $2 $3 $4 $5 }\n');
+    }).toThrowError(ParserError);
+});
+
+test('POP { $0 1 $2 $3 $10 }', () => {
+    const parser = new Parser();
+
+    parser.feed('POP { $0 $1 $2 $3 $10 }\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['POP', { reglist: [ 0, 1, 2, 3, 10 ] }]
+    ]);
+});
+

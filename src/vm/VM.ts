@@ -1,6 +1,7 @@
 import { ID_HEADER, Opcode } from '../Instruction';
 import { VMError } from './VMError';
 import { Memory } from './Memory';
+import { Stack } from './Stack';
 
 
 export class VM {
@@ -17,6 +18,7 @@ export class VM {
     public totalIterations: number;
     public outputBuffer: Uint8Array;
     public memory: Memory;
+    public stack: Stack;
 
     private breakpoints: number[];
     private ignoreNextBreakpoint: boolean;
@@ -40,6 +42,7 @@ export class VM {
         this.totalIterations = 0;
         this.outputBuffer = new Uint8Array();
         this.memory = new Memory(256 * 256 * 256 - 1);
+        this.stack = new Stack(256 * 256);
 
         this.breakpoints = [];
         this.ignoreNextBreakpoint = false;
@@ -636,6 +639,58 @@ export class VM {
                 );
                 break;
 
+            case Opcode.PUSH:
+                const PUSH_reg = this.next8Bits();
+                this.next16Bits(); // padding
+
+                this.stack.push(this.registers[PUSH_reg]);
+
+                this.log(
+                    'PUSH',
+                    '[', PUSH_reg, ':', this.registers[PUSH_reg], ']'
+                );
+                break;
+
+            case Opcode.POP:
+                const POP_reg = this.next8Bits();
+                this.next16Bits(); // padding
+
+                this.registers[POP_reg] = this.stack.pop();
+
+                this.log(
+                    'POP',
+                    '[', POP_reg, ':', this.registers[POP_reg], ']'
+                );
+                break;
+
+            case Opcode.PUSHM:
+                const PUSHM_regs = this.next24BitsAsReglist();
+
+                for (let i = 0; i < PUSHM_regs.length; i++) {
+                    this.stack.push(this.registers[PUSHM_regs[i]]);
+                }
+
+                this.log(
+                    'PUSHM',
+                    '[', PUSHM_regs.join(' '), ']'
+                );
+
+                break;
+
+            case Opcode.POPM:
+                const POPM_regs = this.next24BitsAsReglist();
+
+                for (let i = 0; i < POPM_regs.length; i++) {
+                    this.registers[POPM_regs[i]] = this.stack.pop();
+                }
+
+                this.log(
+                    'POPM',
+                    '[', POPM_regs.join(' '), ']'
+                );
+
+                break;
+
             default:
                 throw new VMError(`Unrecognized opcode [${opcode}] found! PC: ${this.pc} Terminating!`);
         }
@@ -653,15 +708,38 @@ export class VM {
     }
 
     private next8Bits(): number {
-        let result = this.program[this.pc];
+        const result = this.program[this.pc];
         this.pc += 1;
         return result;
     }
 
     private next16Bits(): number {
-        let result = ((this.program[this.pc]) << 8) | this.program[this.pc + 1];
+        const result = ((this.program[this.pc]) << 8) | this.program[this.pc + 1];
         this.pc += 2;
         return result;
+    }
+
+    private next24Bits(): number {
+        const result = ((this.program[this.pc]) << 16) | ((this.program[this.pc + 1]) << 8) | this.program[this.pc + 2];
+        this.pc += 3;
+        return result;
+    }
+
+    private next24BitsAsReglist(): number[] {
+        const reglist: number[] = [];
+        let map = this.next24Bits();
+
+        const length = (map >>> 0) & 15;
+        let i = 0;
+        while (i < length) {
+            reglist.push((map >>> 4) & 15);
+            map = map >>> 4;
+            i += 1;
+        }
+
+        reglist.reverse();
+
+        return reglist;
     }
 
     private log(... args: any[]) {

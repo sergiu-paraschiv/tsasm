@@ -29,6 +29,10 @@ export enum Opcode {
     SAVETOR  = 27,
     SAVER    = 28,
     SAVERTOR = 29,
+    PUSH     = 30,
+    PUSHM    = 31,
+    POP      = 32,
+    POPM     = 33,
     HEAD     = 199,
     ILGL
 }

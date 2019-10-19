@@ -10,15 +10,16 @@ segment -> instr                  {% id %}
 
 dir -> ".asciiz" __ "'" .:* "'"   {% d => [ d[0], d[3].join("") ] %}
 
-instr -> instr_no_op                            {% d => [ d[0] ] %}
-       | instr_1_reg   __ reg                   {% d => [ d[0], d[2] ] %}
-       | instr_1_label __ label                 {% d => [ d[0], d[2] ] %}
-       | instr_2_reg   __ reg  __ reg           {% d => [ d[0], d[2], d[4] ] %}
-       | instr_3_reg   __ reg  __ reg  __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
-       | "LOAD"        __ reg  __ int           {% d => [ d[0], d[2], d[4] ] %}
-       | "LOAD"        __ reg  __ addr          {% d => [ d[0], d[2], d[4] ] %}
-       | "SAVE"        __ addr __ int           {% d => [ d[0], d[2], d[4] ] %}
-       | "SAVE"        __ addr __ reg           {% d => [ d[0], d[2], d[4] ] %}
+instr -> instr_no_op                             {% d => [ d[0] ] %}
+       | instr_1_reg    __ reg                   {% d => [ d[0], d[2] ] %}
+       | instr_1_label  __ label                 {% d => [ d[0], d[2] ] %}
+       | instr_2_reg    __ reg  __ reg           {% d => [ d[0], d[2], d[4] ] %}
+       | instr_3_reg    __ reg  __ reg  __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
+       | instr_reg_list __ reg_list              {% d => [ d[0], d[2] ] %}
+       | "LOAD"         __ reg  __ int           {% d => [ d[0], d[2], d[4] ] %}
+       | "LOAD"         __ reg  __ addr          {% d => [ d[0], d[2], d[4] ] %}
+       | "SAVE"         __ addr __ int           {% d => [ d[0], d[2], d[4] ] %}
+       | "SAVE"         __ addr __ reg           {% d => [ d[0], d[2], d[4] ] %}
 
 
 instr_no_op -> "HALT"    {% id %}
@@ -41,6 +42,8 @@ instr_1_reg -> "JMP"     {% id %}
              | "JLT"     {% id %}
              | "JGTE"    {% id %}
              | "JLTE"    {% id %}
+             | "PUSH"    {% id %}
+             | "POP"     {% id %}
 
 instr_2_reg -> "CMP"     {% id %}
 
@@ -48,6 +51,9 @@ instr_3_reg -> "ADD"     {% id %}
              | "SUB"     {% id %}
              | "DIV"     {% id %}
              | "MUL"     {% id %}
+
+instr_reg_list -> "PUSH" {% id %}
+                | "POP"  {% id %}
 
 addr -> "[" int "]"                 {% d => { return { addr: d[1], offset: 0 } } %}
       | "[" reg "]"                 {% d => { return { addr: d[1], offset: 0 } } %}
@@ -57,6 +63,13 @@ addr -> "[" int "]"                 {% d => { return { addr: d[1], offset: 0 } }
 
 label -> "." [A-Z] [A-Z0-9]:*       {% d => { return { label: "." + d[1] + d[2].join("") } } %}
        | [A-Z] [A-Z0-9]:*           {% d => { return { label: d[0] + d[1].join("") } } %}
+
+reg_list -> "{" __ (reg __):+ "}"   {% (d, l, reject) => {
+                                        if (d[2].length > 5) {
+                                            return reject;
+                                        }
+                                        return { reglist: d[2].map(r => r[0].reg) };
+                                    } %}
 
 reg   -> "$" int                    {% (d, l, reject) => {
                                         if (d[1] > 15) {

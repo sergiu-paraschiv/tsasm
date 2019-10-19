@@ -38,6 +38,8 @@ export class Assembler {
         'JLTE': Opcode.JLTE,
         'PUTS': Opcode.PUTS,
         'SAVE': Opcode.SAVE,
+        'PUSH': Opcode.PUSH,
+        'POP' : Opcode.POP
     };
 
     private DIRECTIVES: string[] = [
@@ -256,6 +258,31 @@ export class Assembler {
                             program[codeOffset + 2] = (op[1].addr + op[1].offset) & 255;
                             program[codeOffset + 3] = op[2];
                         }
+
+                        break;
+
+                    case Opcode.PUSH:
+                    case Opcode.POP:
+                        if (op[1].reglist) {
+                            if (opcode === Opcode.PUSH) {
+                                program[codeOffset] = Opcode.PUSHM;
+                            }
+                            else {
+                                program[codeOffset] = Opcode.POPM;
+                            }
+
+                            const reglist = this.buildReglist(op[1].reglist);
+
+                            program[codeOffset + 1] = (reglist >>> 16) & 255;
+                            program[codeOffset + 2] = (reglist >>> 8) & 255;
+                            program[codeOffset + 3] = reglist & 255;
+                        }
+                        else {
+                            program[codeOffset + 1] = op[1].reg;
+                            program[codeOffset + 2] = 0;
+                            program[codeOffset + 3] = 0;
+                        }
+
                         break;
 
                     default:
@@ -291,6 +318,20 @@ export class Assembler {
             program,
             debugData
         };
+    }
+
+    private buildReglist(list: number[]) {
+        let res = list[0];
+
+        let i = 1;
+        while (i < list.length) {
+            res = (res << 4) | list[i];
+            i += 1;
+        }
+
+        res = (res << 4) | list.length;
+
+        return res;
     }
 
     private buildHeaderSection(lines: any[]): [

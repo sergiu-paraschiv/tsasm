@@ -696,3 +696,130 @@ test('PROGRAM #4 - with memory offset stuff', () => {
     expect(vm.memory.get(8)).toBe(8);
     expect(vm.memory.get(9)).toBe(9);
 });
+
+test('PUSH $1', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 255, 255,
+        Opcode.PUSH, 1, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+});
+
+test('POP $2', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 255, 255,
+        Opcode.PUSH, 1, 0, 0,
+        Opcode.POP,  2, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.stack.pointer).toBeUndefined();
+    expect(vm.registers[2]).toBe(256 * 256 - 1);
+});
+
+test('PUSH { $0 }', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 0, 255, 255,
+        Opcode.PUSHM,0, 0, 1,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+});
+
+test('PUSH { $1 }', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 255, 255,
+        Opcode.PUSHM, 0, 0, 17,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+});
+
+test('PUSH { $2 }', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 2, 255, 255,
+        Opcode.PUSHM, 0, 0, 33,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+});
+
+test('POP { $15 }', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 0, 255, 255,
+        Opcode.PUSH, 0, 0, 0,
+        Opcode.POPM, 0, 0, 241,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.stack.pointer).toBeUndefined();
+    expect(vm.registers[15]).toBe(256 * 256 - 1);
+});
+
+test('PUSH { $1 $2 } -> POP { $2 $1 }', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.LOAD, 2, 0, 2,
+        Opcode.PUSHM, 0, 1, 34,
+        Opcode.POPM, 0, 2, 18,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(1);
+    expect(vm.registers[2]).toBe(2);
+});
+test('PUSH { $1 $2 } -> POP { $1 $2 }', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.LOAD, 2, 0, 2,
+        Opcode.PUSHM, 0, 1, 34,
+        Opcode.POPM, 0, 1, 34,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(2);
+    expect(vm.registers[2]).toBe(1);
+});

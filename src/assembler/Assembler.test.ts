@@ -330,7 +330,7 @@ test('provides sorted list of registers used if debug data is requested', () => 
     ]);
 });
 
-test('provides list of labels and pcs for them if debug data is requested', () => {
+test('provides list of labels and PCs for them if debug data is requested', () => {
     const assembler = new Assembler();
 
     const data = assembler.run(`
@@ -685,5 +685,186 @@ test('SAVE [$1, 255] $2', () => {
         ... ID_HEADER,
         8, 0, 0, 0,
         Opcode.SAVERTOR, 1, 255, 2
+    ]));
+});
+
+test('PUSH $1', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH $1');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSH, 1, 0, 0
+    ]));
+});
+
+test('POP $1', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('POP $1');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.POP, 1, 0, 0
+    ]));
+});
+
+test('PUSH { $0 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $0 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 0, 1
+    ]));
+});
+
+test('PUSH { $1 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $1 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 0, 17
+    ]));
+});
+
+test('PUSH { $2 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $2 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 0, 33
+    ]));
+});
+
+test('PUSH { $15 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $15 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 0, 241
+    ]));
+});
+
+test('PUSH { $0 $1 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $0 $1 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 0, 18
+    ]));
+});
+
+test('PUSH { $1 $0 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $1 $0 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 1, 2
+    ]));
+});
+
+test('PUSH { $1 $3 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $1 $3 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 1, 50
+    ]));
+});
+
+test('PUSH { $11 $6 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $11 $6 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 11, 98
+    ]));
+});
+
+test('PUSH { $0 $1 $2 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $0 $1 $2 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 1, 35
+    ]));
+});
+
+test('PUSH { $3 $2 $1 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $3 $2 $1 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 0, 50, 19
+    ]));
+});
+
+test('PUSH { $1 $3 $5 $6 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $1 $3 $5 $6 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 1, 53, 100
+    ]));
+});
+
+test('PUSH { $11 $10 $9 $8 $7 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('PUSH { $11 $10 $9 $8 $7 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.PUSHM, 186, 152, 117
+    ]));
+});
+
+
+test('POP { $0 }', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('POP { $0 }');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.POPM, 0, 0, 1
     ]));
 });
