@@ -23,6 +23,7 @@ instr -> instr_no_op                             {% d => [ d[0] ] %}
 
 
 instr_no_op -> "HALT"    {% id %}
+             | "RET"     {% id %}
 
 instr_1_label -> "JMP"   {% id %}
                | "JEQ"   {% id %}
@@ -32,6 +33,7 @@ instr_1_label -> "JMP"   {% id %}
                | "JGTE"  {% id %}
                | "JLTE"  {% id %}
                | "PUTS"  {% id %}
+               | "CALL"  {% id %}
 
 instr_1_reg -> "JMP"     {% id %}
              | "JMPF"    {% id %}

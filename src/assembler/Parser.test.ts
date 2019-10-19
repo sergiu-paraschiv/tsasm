@@ -528,3 +528,28 @@ test('POP { $0 1 $2 $3 $10 }', () => {
     ]);
 });
 
+test('CALL LABEL', () => {
+    const parser = new Parser();
+
+    parser.feed('CALL LABEL\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['CALL', { label: 'LABEL' }]
+    ]);
+});
+
+
+test('RET', () => {
+    const parser = new Parser();
+
+    parser.feed('RET\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['RET']
+    ]);
+});
+
+
+

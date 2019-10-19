@@ -856,7 +856,6 @@ test('PUSH { $11 $10 $9 $8 $7 }', () => {
     ]));
 });
 
-
 test('POP { $0 }', () => {
     const assembler = new Assembler();
 
@@ -866,5 +865,30 @@ test('POP { $0 }', () => {
         ... ID_HEADER,
         8, 0, 0, 0,
         Opcode.POPM, 0, 0, 1
+    ]));
+});
+
+test('CALL LABEL', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('LABEL: CALL LABEL');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.CALL, 8, 0, 0
+    ]));
+});
+
+
+test('RET', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('RET');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.RET, 0, 0, 0
     ]));
 });

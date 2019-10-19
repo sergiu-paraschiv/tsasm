@@ -33,6 +33,8 @@ export enum Opcode {
     PUSHM    = 31,
     POP      = 32,
     POPM     = 33,
+    CALL     = 34,
+    RET      = 35,
     HEAD     = 199,
     ILGL
 }

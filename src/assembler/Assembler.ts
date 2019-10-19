@@ -39,7 +39,9 @@ export class Assembler {
         'PUTS': Opcode.PUTS,
         'SAVE': Opcode.SAVE,
         'PUSH': Opcode.PUSH,
-        'POP' : Opcode.POP
+        'POP' : Opcode.POP,
+        'CALL': Opcode.CALL,
+        'RET' : Opcode.RET
     };
 
     private DIRECTIVES: string[] = [
@@ -282,6 +284,20 @@ export class Assembler {
                             program[codeOffset + 2] = 0;
                             program[codeOffset + 3] = 0;
                         }
+
+                        break;
+
+                    case Opcode.CALL:
+                        program[codeOffset + 1] = labels[op[1].label];
+                        program[codeOffset + 2] = 0;
+                        program[codeOffset + 3] = 0;
+
+                        break;
+
+                    case Opcode.RET:
+                        program[codeOffset + 1] = 0;
+                        program[codeOffset + 2] = 0;
+                        program[codeOffset + 3] = 0;
 
                         break;
 

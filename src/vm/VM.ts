@@ -8,7 +8,6 @@ export class VM {
     public debug: boolean;
 
     public registers: Uint32Array;
-    public pc: number;
     public program: Uint8Array;
     public flags: {
         remainder: number;
@@ -32,7 +31,6 @@ export class VM {
         this.debug = false;
 
         this.registers = new Uint32Array(16);
-        this.pc = 0;
         this.program = new Uint8Array();
         this.flags = {
             remainder: 0,
@@ -48,6 +46,22 @@ export class VM {
         this.ignoreNextBreakpoint = false;
         this.paused = false;
         this.forceStop = false;
+    }
+
+    private get lr(): number {
+        return this.registers[14];
+    }
+
+    private set lr(value: number) {
+        this.registers[14] = value;
+    }
+
+    private get pc(): number {
+        return this.registers[15];
+    }
+
+    private set pc(value: number) {
+        this.registers[15] = value;
     }
 
     public run() {
@@ -689,6 +703,33 @@ export class VM {
                     '[', POPM_regs.join(' '), ']'
                 );
 
+                break;
+
+            case Opcode.CALL:
+                this.lr = this.pc + 3;
+
+                const CALL_pos = this.next8Bits();
+                this.next16Bits(); // padding
+                this.pc = CALL_pos;
+
+                this.log(
+                    'CALL',
+                    '[', CALL_pos, ']',
+                    'pc:', this.pc
+                );
+                break;
+
+            case Opcode.RET:
+                const RET_pos = this.lr;
+                this.next8Bits(); // padding
+                this.next16Bits(); // padding
+
+                this.pc = RET_pos;
+
+                this.log(
+                    'RET',
+                    '[', RET_pos, ']'
+                );
                 break;
 
             default:

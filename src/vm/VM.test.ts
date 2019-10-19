@@ -13,7 +13,7 @@ test('HALT', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([Opcode.HALT, 0, 0, 0]);
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 });
 
 test('ILGL', () => {
@@ -21,7 +21,7 @@ test('ILGL', () => {
         const vm = new VM();
         vm.program = Uint8Array.from([200, 0, 0, 0]);
         vm.exec();
-        expect(vm.pc).toBe(1);
+        expect(vm.registers[15]).toBe(1);
     }).toThrowError(new VMError(`Unrecognized opcode [200] found! PC: 1 Terminating!`));
 });
 
@@ -83,7 +83,7 @@ test('JMP', () => {
     vm.registers[5] = 9;
     vm.program = Uint8Array.from([Opcode.JMP, 5, 0, 0]);
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 });
 
 test('JMPF', () => {
@@ -91,7 +91,7 @@ test('JMPF', () => {
     vm.registers[2] = 4;
     vm.program = Uint8Array.from([Opcode.JMPF, 2, 0, 0]);
     vm.exec();
-    expect(vm.pc).toBe(8);
+    expect(vm.registers[15]).toBe(8);
 });
 
 test('JMPB', () => {
@@ -99,7 +99,7 @@ test('JMPB', () => {
     vm.registers[2] = 4;
     vm.program = Uint8Array.from([Opcode.JMPB, 2, 0, 0]);
     vm.exec();
-    expect(vm.pc).toBe(0);
+    expect(vm.registers[15]).toBe(0);
 });
 
 test('CMP equal flag', () => {
@@ -147,12 +147,12 @@ test('JEQ', () => {
     vm.flags.equal = false;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 
     vm.flags.equal = true;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 });
 
 test('JNEQ', () => {
@@ -162,12 +162,12 @@ test('JNEQ', () => {
     vm.flags.equal = false;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 
     vm.flags.equal = true;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 });
 
 test('JLT', () => {
@@ -178,18 +178,18 @@ test('JLT', () => {
     vm.flags.negative = true;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = false;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 
     vm.flags.equal = true;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 });
 
 test('JGT', () => {
@@ -200,18 +200,18 @@ test('JGT', () => {
     vm.flags.negative = false;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = true;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 
     vm.flags.equal = true;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 });
 
 test('JLTE', () => {
@@ -222,24 +222,24 @@ test('JLTE', () => {
     vm.flags.negative = true;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = false;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 
     vm.flags.equal = true;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 
     vm.flags.equal = true;
     vm.flags.negative = true;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 });
 
 test('JGTE', () => {
@@ -250,24 +250,24 @@ test('JGTE', () => {
     vm.flags.negative = false;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 
     vm.flags.equal = false;
     vm.flags.negative = true;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 
     vm.flags.equal = true;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 
     vm.flags.equal = true;
     vm.flags.negative = false;
 
     vm.exec();
-    expect(vm.pc).toBe(9);
+    expect(vm.registers[15]).toBe(9);
 });
 
 test('JEQ label', () => {
@@ -276,12 +276,12 @@ test('JEQ label', () => {
     vm.flags.equal = false;
 
     vm.exec();
-    expect(vm.pc).toBe(4);
+    expect(vm.registers[15]).toBe(4);
 
     vm.flags.equal = true;
 
     vm.exec();
-    expect(vm.pc).toBe(5);
+    expect(vm.registers[15]).toBe(5);
 });
 
 test('Simple PROGRAM', () => {
@@ -316,7 +316,7 @@ test('identifying HEADER', () => {
     ]);
 
     vm.run();
-    expect(vm.pc).toBe(12);
+    expect(vm.registers[15]).toBe(12);
 });
 
 test('throws on missing HEADER', () => {
@@ -349,7 +349,7 @@ test('HEADER section with constants', () => {
     ]);
 
     vm.run();
-    expect(vm.pc).toBe(20);
+    expect(vm.registers[15]).toBe(20);
 });
 
 test('PROGRAM #2', () => {
@@ -375,7 +375,7 @@ test('PROGRAM #2', () => {
     vm.run();
     expect(vm.registers[1]).toBe(0);
     expect(vm.registers[11]).toBe(5);
-    expect(vm.pc).toBe(60);
+    expect(vm.registers[15]).toBe(60);
 });
 
 test('PUTS FOO', () => {
@@ -389,7 +389,7 @@ test('PUTS FOO', () => {
     ]);
 
     vm.run();
-    expect(vm.pc).toBe(20);
+    expect(vm.registers[15]).toBe(20);
     expect(vm.outputBuffer).toEqual(Uint8Array.from([102, 111, 111, 0]));
 });
 
@@ -772,23 +772,6 @@ test('PUSH { $2 }', () => {
     expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
 });
 
-test('POP { $15 }', () => {
-    const vm = new VM();
-
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 0, 255, 255,
-        Opcode.PUSH, 0, 0, 0,
-        Opcode.POPM, 0, 0, 241,
-        Opcode.HALT, 0, 0, 0
-    ]);
-
-    vm.run();
-    expect(vm.stack.pointer).toBeUndefined();
-    expect(vm.registers[15]).toBe(256 * 256 - 1);
-});
-
 test('PUSH { $1 $2 } -> POP { $2 $1 }', () => {
     const vm = new VM();
 
@@ -806,6 +789,7 @@ test('PUSH { $1 $2 } -> POP { $2 $1 }', () => {
     expect(vm.registers[1]).toBe(1);
     expect(vm.registers[2]).toBe(2);
 });
+
 test('PUSH { $1 $2 } -> POP { $1 $2 }', () => {
     const vm = new VM();
 
@@ -822,4 +806,22 @@ test('PUSH { $1 $2 } -> POP { $1 $2 }', () => {
     vm.run();
     expect(vm.registers[1]).toBe(2);
     expect(vm.registers[2]).toBe(1);
+});
+
+test('CALL + RET', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.CALL, 16, 0, 0,
+        Opcode.HALT, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.RET, 0, 0, 0,
+        Opcode.LOAD, 2, 0, 2
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(1);
+    expect(vm.registers[2]).toBe(0);
 });
