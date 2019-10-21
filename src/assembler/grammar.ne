@@ -52,10 +52,15 @@ instr_1_reg -> "JMP"     {% id %}
              | "POP"     {% id %}
              | "INC"     {% id %}
              | "DEC"     {% id %}
+             | "NOT"     {% id %}
 
 instr_2_reg -> "CMP"     {% id %}
              | "CMPN"    {% id %}
              | "MOV"     {% id %}
+             | "AND"     {% id %}
+             | "OR"      {% id %}
+             | "XOR"     {% id %}
+             | "BIC"     {% id %}
 
 instr_1_reg_int -> "CMP"     {% id %}
                  | "CMPN"    {% id %}

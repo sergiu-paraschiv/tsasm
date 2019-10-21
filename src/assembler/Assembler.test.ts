@@ -1060,3 +1060,66 @@ test('MOV $1 $2', () => {
     ]));
 });
 
+test('AND $1 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('AND $1 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.AND, 1, 2, 0
+    ]));
+});
+
+
+test('OR $1 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('OR $1 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.OR, 1, 2, 0
+    ]));
+});
+
+
+test('XOR $1 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('XOR $1 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.XOR, 1, 2, 0
+    ]));
+});
+
+
+test('NOT $1', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('NOT $1');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.NOT, 1, 0, 0
+    ]));
+});
+
+
+test('BIC $1 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('BIC $1 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.BIC, 1, 2, 0
+    ]));
+});

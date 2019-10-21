@@ -892,6 +892,85 @@ export class VM {
                     'MOV',
                     '[', MOV_register1, ':', MOV_old_val, ']',
                     '[', MOV_register2, ':', this.registers[MOV_register2], ']',
+                    'res:',  this.registers[MOV_register1]
+                );
+                break;
+
+            case Opcode.AND:
+                const AND_register1 = this.next8Bits();
+                const AND_register2 = this.next8Bits();
+                this.next8Bits(); // padding
+
+                const AND_old_val = this.registers[AND_register1];
+                this.registers[AND_register1] = this.registers[AND_register1] & this.registers[AND_register2];
+
+                this.log(
+                    'AND',
+                    '[', AND_register1, ':', AND_old_val, ']',
+                    '[', AND_register2, ':', this.registers[AND_register2], ']',
+                    'res:',  this.registers[AND_register1]
+                );
+                break;
+
+            case Opcode.OR:
+                const OR_register1 = this.next8Bits();
+                const OR_register2 = this.next8Bits();
+                this.next8Bits(); // padding
+
+                const OR_old_val = this.registers[OR_register1];
+                this.registers[OR_register1] = this.registers[OR_register1] | this.registers[OR_register2];
+
+                this.log(
+                    'OR',
+                    '[', OR_register1, ':', OR_old_val, ']',
+                    '[', OR_register2, ':', this.registers[OR_register2], ']',
+                    'res:',  this.registers[OR_register1]
+                );
+                break;
+
+            case Opcode.XOR:
+                const XOR_register1 = this.next8Bits();
+                const XOR_register2 = this.next8Bits();
+                this.next8Bits(); // padding
+
+                const XOR_old_val = this.registers[XOR_register1];
+                this.registers[XOR_register1] = this.registers[XOR_register1] ^ this.registers[XOR_register2];
+
+                this.log(
+                    'XOR',
+                    '[', XOR_register1, ':', XOR_old_val, ']',
+                    '[', XOR_register2, ':', this.registers[XOR_register2], ']',
+                    'res:',  this.registers[XOR_register1]
+                );
+                break;
+
+            case Opcode.NOT:
+                const NOT_register1 = this.next8Bits();
+                this.next16Bits(); // padding
+
+                const NOT_old_val = this.registers[NOT_register1];
+                this.registers[NOT_register1] = ~ this.registers[NOT_register1];
+
+                this.log(
+                    'NOT',
+                    '[', NOT_register1, ':', NOT_old_val, ']',
+                    'res:',  this.registers[NOT_register1]
+                );
+                break;
+
+            case Opcode.BIC:
+                const BIC_register1 = this.next8Bits();
+                const BIC_register2 = this.next8Bits();
+                this.next8Bits(); // padding
+
+                const BIC_old_val = this.registers[BIC_register1];
+                this.registers[BIC_register1] = this.registers[BIC_register1] & (~ this.registers[BIC_register2]);
+
+                this.log(
+                    'BIC',
+                    '[', BIC_register1, ':', BIC_old_val, ']',
+                    '[', BIC_register2, ':', this.registers[BIC_register2], ']',
+                    'res:',  this.registers[BIC_register1]
                 );
                 break;
 

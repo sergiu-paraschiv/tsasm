@@ -1137,3 +1137,82 @@ test('MOV', () => {
     expect(vm.registers[1]).toBe(2);
     expect(vm.registers[2]).toBe(2);
 });
+
+test('AND', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.LOAD, 2, 0, 3,
+        Opcode.AND,  1, 2, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(1);
+});
+
+test('OR', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.LOAD, 2, 0, 2,
+        Opcode.OR,  1, 2, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(3);
+});
+
+test('XOR', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.LOAD, 2, 0, 3,
+        Opcode.XOR,  1, 2, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(2);
+});
+
+test('NOT', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.NOT,  1, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(-2);
+});
+
+test('BIC', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 15,
+        Opcode.LOAD, 2, 0, 1,
+        Opcode.BIC,  1, 2, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(14);
+});

@@ -910,3 +910,58 @@ test('MOV $1 $2', () => {
         ['MOV', { reg: 1 }, { reg: 2 }]
     ]);
 });
+
+test('AND $1 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('AND $1 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['AND', { reg: 1 }, { reg: 2 }]
+    ]);
+});
+
+test('OR $1 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('OR $1 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['OR', { reg: 1 }, { reg: 2 }]
+    ]);
+});
+
+test('XOR $1 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('XOR $1 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['XOR', { reg: 1 }, { reg: 2 }]
+    ]);
+});
+
+test('NOT $1', () => {
+    const parser = new Parser();
+
+    parser.feed('NOT $1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['NOT', { reg: 1 }]
+    ]);
+});
+
+test('BIC $1 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('BIC $1 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['BIC', { reg: 1 }, { reg: 2 }]
+    ]);
+});

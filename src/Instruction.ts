@@ -45,6 +45,11 @@ export enum Opcode {
     CALL,
     RET,
     MOV,
+    AND,
+    OR,
+    XOR,
+    NOT,
+    BIC,
     HEAD     = 199,
     ILGL
 }
@@ -83,7 +88,12 @@ export const OpcodeMAP: {
     'POP' : Opcode.POP,
     'CALL': Opcode.CALL,
     'RET' : Opcode.RET,
-    'MOV' : Opcode.MOV
+    'MOV' : Opcode.MOV,
+    'AND' : Opcode.AND,
+    'OR' : Opcode.OR,
+    'XOR' : Opcode.XOR,
+    'NOT' : Opcode.NOT,
+    'BIC' : Opcode.BIC
 };
 
 export enum Directive {
