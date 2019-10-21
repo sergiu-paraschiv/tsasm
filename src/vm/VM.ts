@@ -236,32 +236,32 @@ export class VM {
                 const ADD_register2 = this.next8Bits();
                 const ADD_register3 = this.next8Bits();
 
-                const ADD_pre = this.registers[ADD_register3];
-                this.registers[ADD_register3] = this.registers[ADD_register1] + this.registers[ADD_register2];
+                const ADD_pre = this.registers[ADD_register1];
+                this.registers[ADD_register1] = this.registers[ADD_register2] + this.registers[ADD_register3];
 
                 this.log(
                     'ADD',
-                    '[', ADD_register1, ':', this.registers[ADD_register1], ']',
+                    '[', ADD_register1, ':', ADD_pre, ']',
                     '[', ADD_register2, ':', this.registers[ADD_register2], ']',
-                    '[', ADD_register3, ':', ADD_pre, ']',
-                    'res:', this.registers[ADD_register3]
+                    '[', ADD_register3, ':', this.registers[ADD_register3], ']',
+                    'res:', this.registers[ADD_register1]
                 );
                 break;
 
             case Opcode.ADDI:
                 const ADDI_register1 = this.next8Bits();
+                const ADDI_register2 = this.next8Bits();
                 const ADDI_int8 = this.next8BitsSigned();
-                const ADDI_register3 = this.next8Bits();
 
-                const ADDI_pre = this.registers[ADDI_register3];
-                this.registers[ADDI_register3] = this.registers[ADDI_register1] + ADDI_int8;
+                const ADDI_pre = this.registers[ADDI_register1];
+                this.registers[ADDI_register1] = ADDI_int8 + this.registers[ADDI_register2];
 
                 this.log(
                     'ADDI',
-                    '[', ADDI_register1, ':', this.registers[ADDI_register1], ']',
+                    '[', ADDI_register1, ':', ADDI_pre, ']',
+                    '[', ADDI_register2, ':', this.registers[ADDI_register2], ']',
                     '[', ADDI_int8, ']',
-                    '[', ADDI_register3, ':', ADDI_pre, ']',
-                    'res:', this.registers[ADDI_register3]
+                    'res:', this.registers[ADDI_register1]
                 );
                 break;
 
@@ -283,32 +283,32 @@ export class VM {
                 const SUB_register2 = this.next8Bits();
                 const SUB_register3 = this.next8Bits();
 
-                const SUB_pre = this.registers[SUB_register3];
-                this.registers[SUB_register3] = this.registers[SUB_register1] - this.registers[SUB_register2];
+                const SUB_pre = this.registers[SUB_register1];
+                this.registers[SUB_register1] = this.registers[SUB_register2] - this.registers[SUB_register3];
 
                 this.log(
                     'SUB',
-                    '[', SUB_register1, ':', this.registers[SUB_register1], ']',
+                    '[', SUB_register1, ':', SUB_pre, ']',
                     '[', SUB_register2, ':', this.registers[SUB_register2], ']',
-                    '[', SUB_register3, ':', SUB_pre, ']',
-                    'res:', this.registers[SUB_register3]
+                    '[', SUB_register3, ':', this.registers[SUB_register3], ']',
+                    'res:', this.registers[SUB_register1]
                 );
                 break;
 
             case Opcode.SUBI:
                 const SUBI_register1 = this.next8Bits();
+                const SUBI_register2 = this.next8Bits();
                 const SUBI_int8 = this.next8BitsSigned();
-                const SUBI_register3 = this.next8Bits();
 
-                const SUBI_pre = this.registers[SUBI_register3];
-                this.registers[SUBI_register3] = this.registers[SUBI_register1] - SUBI_int8;
+                const SUBI_pre = this.registers[SUBI_register1];
+                this.registers[SUBI_register1] = this.registers[SUBI_register2] - SUBI_int8;
 
                 this.log(
                     'SUBI',
-                    '[', SUBI_register1, ':', this.registers[SUBI_register1], ']',
+                    '[', SUBI_register1, ':', SUBI_pre, ']',
+                    '[', SUBI_register2, ':', this.registers[SUBI_register2], ']',
                     '[', SUBI_int8, ']',
-                    '[', SUBI_register3, ':', SUBI_pre, ']',
-                    'res:', this.registers[SUBI_register3]
+                    'res:', this.registers[SUBI_register1]
                 );
                 break;
 
@@ -330,32 +330,32 @@ export class VM {
                 const MUL_register2 = this.next8Bits();
                 const MUL_register3 = this.next8Bits();
 
-                const MUL_pre = this.registers[MUL_register3];
-                this.registers[MUL_register3] = this.registers[MUL_register1] * this.registers[MUL_register2];
+                const MUL_pre = this.registers[MUL_register1];
+                this.registers[MUL_register1] = this.registers[MUL_register2] * this.registers[MUL_register3];
 
                 this.log(
                     'MUL',
-                    '[', MUL_register1, ':', this.registers[MUL_register1], ']',
+                    '[', MUL_register1, ':', MUL_pre, ']',
                     '[', MUL_register2, ':', this.registers[MUL_register2], ']',
-                    '[', MUL_register3, ':', MUL_pre, ']',
-                    'res:', this.registers[MUL_register3]
+                    '[', MUL_register3, ':', this.registers[MUL_register3], ']',
+                    'res:', this.registers[MUL_register1]
                 );
                 break;
 
             case Opcode.MULI:
                 const MULI_register1 = this.next8Bits();
+                const MULI_register2 = this.next8Bits();
                 const MULI_int8 = this.next8BitsSigned();
-                const MULI_register3 = this.next8Bits();
 
-                const MULI_pre = this.registers[MULI_register3];
-                this.registers[MULI_register3] = this.registers[MULI_register1] * MULI_int8;
+                const MULI_pre = this.registers[MULI_register1];
+                this.registers[MULI_register1] = this.registers[MULI_register2] * MULI_int8;
 
                 this.log(
                     'MULI',
-                    '[', MULI_register1, ':', this.registers[MULI_register1], ']',
+                    '[', MULI_register1, ':', MULI_pre, ']',
+                    '[', MULI_register2, ':', this.registers[MULI_register2], ']',
                     '[', MULI_int8, ']',
-                    '[', MULI_register3, ':', MULI_pre, ']',
-                    'res:', this.registers[MULI_register3]
+                    'res:', this.registers[MULI_register1]
                 );
                 break;
 
@@ -364,35 +364,35 @@ export class VM {
                 const DIV_register2 = this.next8Bits();
                 const DIV_register3 = this.next8Bits();
 
-                const DIV_pre = this.registers[DIV_register3];
-                this.registers[DIV_register3] = Math.trunc(this.registers[DIV_register1] / this.registers[DIV_register2]);
-                this.flags.remainder = this.registers[DIV_register1] % this.registers[DIV_register2];
+                const DIV_pre = this.registers[DIV_register1];
+                this.registers[DIV_register1] = Math.trunc(this.registers[DIV_register2] / this.registers[DIV_register3]);
+                this.flags.remainder = this.registers[DIV_register2] % this.registers[DIV_register3];
 
                 this.log(
                     'DIV',
-                    '[', DIV_register1, ':', this.registers[DIV_register1], ']',
+                    '[', DIV_register1, ':', this.registers[DIV_pre], ']',
                     '[', DIV_register2, ':', this.registers[DIV_register2], ']',
-                    '[', DIV_register3, ':', DIV_pre, ']',
-                    'res:', this.registers[DIV_register3],
+                    '[', DIV_register3, ':', this.registers[DIV_register3], ']',
+                    'res:', this.registers[DIV_register1],
                     'remainder:', this.flags.remainder
                 );
                 break;
 
             case Opcode.DIVI:
                 const DIVI_register1 = this.next8Bits();
+                const DIVI_register2 = this.next8Bits();
                 const DIVI_int8 = this.next8BitsSigned();
-                const DIVI_register3 = this.next8Bits();
 
-                const DIVI_pre = this.registers[DIVI_register3];
-                this.registers[DIVI_register3] = Math.trunc(this.registers[DIVI_register1] / DIVI_int8);
-                this.flags.remainder = this.registers[DIVI_register1] % DIVI_int8;
+                const DIVI_pre = this.registers[DIVI_register1];
+                this.registers[DIVI_register1] = Math.trunc(this.registers[DIVI_register2] / DIVI_int8);
+                this.flags.remainder = this.registers[DIVI_register2] % DIVI_int8;
 
                 this.log(
                     'DIVI',
-                    '[', DIVI_register1, ':', this.registers[DIVI_register1], ']',
+                    '[', DIVI_register1, ':', DIVI_pre, ']',
+                    '[', DIVI_register2, ':', this.registers[DIVI_register2], ']',
                     '[', DIVI_int8, ']',
-                    '[', DIVI_register3, ':', DIVI_pre, ']',
-                    'res:', this.registers[DIVI_register3],
+                    'res:', this.registers[DIVI_register1],
                     'remainder:', this.flags.remainder
                 );
                 break;

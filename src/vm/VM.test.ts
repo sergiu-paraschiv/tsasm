@@ -36,7 +36,7 @@ test('ADD', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 10;
-    vm.program = Uint8Array.from([Opcode.ADD, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.ADD, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(510);
 });
@@ -45,7 +45,7 @@ test('ADD with negative numbers 1', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = -10;
-    vm.program = Uint8Array.from([Opcode.ADD, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.ADD, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(490);
 });
@@ -54,7 +54,7 @@ test('ADD with negative numbers 2', () => {
     const vm = new VM();
     vm.registers[0] = -500;
     vm.registers[1] = -10;
-    vm.program = Uint8Array.from([Opcode.ADD, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.ADD, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(-510);
 });
@@ -62,7 +62,7 @@ test('ADD with negative numbers 2', () => {
 test('ADD with immediate', () => {
     const vm = new VM();
     vm.registers[0] = 500;
-    vm.program = Uint8Array.from([Opcode.ADDI, 0, 10, 2]);
+    vm.program = Uint8Array.from([Opcode.ADDI, 2, 0, 10]);
     vm.exec();
     expect(vm.registers[2]).toBe(510);
 });
@@ -70,7 +70,7 @@ test('ADD with immediate', () => {
 test('ADD with negative immediate', () => {
     const vm = new VM();
     vm.registers[0] = 500;
-    vm.program = Uint8Array.from([Opcode.ADDI, 0, -10, 2]);
+    vm.program = Uint8Array.from([Opcode.ADDI, 2, 0, -10]);
     vm.exec();
     expect(vm.registers[2]).toBe(490);
 });
@@ -87,7 +87,7 @@ test('SUB', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 10;
-    vm.program = Uint8Array.from([Opcode.SUB, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.SUB, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(490);
 });
@@ -95,7 +95,7 @@ test('SUB', () => {
 test('SUB with immediate', () => {
     const vm = new VM();
     vm.registers[0] = 500;
-    vm.program = Uint8Array.from([Opcode.SUBI, 0, 10, 2]);
+    vm.program = Uint8Array.from([Opcode.SUBI, 2, 0, 10]);
     vm.exec();
     expect(vm.registers[2]).toBe(490);
 });
@@ -103,7 +103,7 @@ test('SUB with immediate', () => {
 test('SUB with negative immediate', () => {
     const vm = new VM();
     vm.registers[0] = 500;
-    vm.program = Uint8Array.from([Opcode.SUBI, 0, -10, 2]);
+    vm.program = Uint8Array.from([Opcode.SUBI, 2, 0, -10]);
     vm.exec();
     expect(vm.registers[2]).toBe(510);
 });
@@ -112,7 +112,7 @@ test('SUB with negative numbers 1', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = -10;
-    vm.program = Uint8Array.from([Opcode.SUB, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.SUB, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(510);
 });
@@ -121,7 +121,7 @@ test('SUB with negative numbers 2', () => {
     const vm = new VM();
     vm.registers[0] = -500;
     vm.registers[1] = 10;
-    vm.program = Uint8Array.from([Opcode.SUB, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.SUB, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(-510);
 });
@@ -138,7 +138,7 @@ test('MUL', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 10;
-    vm.program = Uint8Array.from([Opcode.MUL, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.MUL, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(5000);
 });
@@ -146,7 +146,7 @@ test('MUL', () => {
 test('MUL with immediate', () => {
     const vm = new VM();
     vm.registers[0] = 500;
-    vm.program = Uint8Array.from([Opcode.MULI, 0, 10, 2]);
+    vm.program = Uint8Array.from([Opcode.MULI, 2, 0, 10]);
     vm.exec();
     expect(vm.registers[2]).toBe(5000);
 });
@@ -154,7 +154,7 @@ test('MUL with immediate', () => {
 test('MUL with negative immediate', () => {
     const vm = new VM();
     vm.registers[0] = 500;
-    vm.program = Uint8Array.from([Opcode.MULI, 0, -10, 2]);
+    vm.program = Uint8Array.from([Opcode.MULI, 2, 0, -10]);
     vm.exec();
     expect(vm.registers[2]).toBe(-5000);
 });
@@ -164,7 +164,7 @@ test('MUL with negative numbers 1', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = -10;
-    vm.program = Uint8Array.from([Opcode.MUL, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.MUL, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(-5000);
 });
@@ -173,7 +173,7 @@ test('MUL with negative numbers 2', () => {
     const vm = new VM();
     vm.registers[0] = -500;
     vm.registers[1] = -10;
-    vm.program = Uint8Array.from([Opcode.MUL, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.MUL, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(5000);
 });
@@ -182,7 +182,7 @@ test('DIV (no remainder)', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 10;
-    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.DIV, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(50);
 });
@@ -190,7 +190,7 @@ test('DIV (no remainder)', () => {
 test('DIV with immediate', () => {
     const vm = new VM();
     vm.registers[0] = 505;
-    vm.program = Uint8Array.from([Opcode.DIVI, 0, 10, 2]);
+    vm.program = Uint8Array.from([Opcode.DIVI, 2, 0, 10]);
     vm.exec();
     expect(vm.registers[2]).toBe(50);
     expect(vm.flags.remainder).toBe(5);
@@ -199,7 +199,7 @@ test('DIV with immediate', () => {
 test('DIV with negative immediate', () => {
     const vm = new VM();
     vm.registers[0] = 505;
-    vm.program = Uint8Array.from([Opcode.DIVI, 0, -10, 2]);
+    vm.program = Uint8Array.from([Opcode.DIVI, 2, 0, -10]);
     vm.exec();
     expect(vm.registers[2]).toBe(-50);
     expect(vm.flags.remainder).toBe(5);
@@ -209,7 +209,7 @@ test('DIV with remainder', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = 9;
-    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.DIV, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(55);
     expect(vm.flags.remainder).toBe(5);
@@ -219,7 +219,7 @@ test('DIV with negative numbers 1', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = -10;
-    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.DIV, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(-50);
 });
@@ -228,7 +228,7 @@ test('DIV with negative numbers 2', () => {
     const vm = new VM();
     vm.registers[0] = -500;
     vm.registers[1] = -10;
-    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.DIV, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(50);
 });
@@ -237,7 +237,7 @@ test('DIV with negative number and remainder', () => {
     const vm = new VM();
     vm.registers[0] = 500;
     vm.registers[1] = -9;
-    vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.DIV, 2, 0, 1]);
     vm.exec();
     expect(vm.registers[2]).toBe(-55);
     expect(vm.flags.remainder).toBe(5);
@@ -557,7 +557,7 @@ test('Simple PROGRAM', () => {
         Opcode.LOAD, 10, 0,  0,    // 16
         Opcode.LOAD, 11, 0,  44,   // 20
         Opcode.LOAD, 12, 0,  28,   // 24
-        Opcode.SUB,  1,  2,  1,    // 28
+        Opcode.SUB,  1,  1,  2,    // 28
         Opcode.CMP,  1,  10, 0,    // 32
         Opcode.JEQ,  11, 0,  0,    // 36
         Opcode.JMP,  12, 0,  0,    // 40
@@ -626,8 +626,8 @@ test('PROGRAM #2', () => {
         Opcode.LOAD, 10, 0,  0,
         Opcode.LOAD, 11, 0,  0,
         Opcode.LOAD, 12, 0,  1,
-        Opcode.SUB,  1,  2,  1,
-        Opcode.ADD,  11, 12, 11,
+        Opcode.SUB,  1,  1,  2,
+        Opcode.ADD,  11, 11, 12,
         Opcode.CMP,  1,  10, 0,
         Opcode.JEQL, 56, 0,  0,
         Opcode.JMPL, 36, 0,  0,
@@ -874,10 +874,10 @@ test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () =
         8, 0, 0, 0,
         Opcode.LOAD,    1, 127, 255, // put (256 * 128 - 1) in $1, our memory pointer
         Opcode.LOAD,    13, 127, 255, // put (256 * 128 - 1) in $13
-        Opcode.ADD,     1, 13, 1,    // add $13 to $1
+        Opcode.ADD,     1, 1, 13,    // add $13 to $1
         Opcode.ADDI,    1, 1, 1,     // add 1 to $1
         Opcode.LOAD,    2, 1,   0,   // put 256 in $2, our multiplier
-        Opcode.MUL,     1, 2,   1,   // multiply $1 by $2
+        Opcode.MUL,     1, 1,   2,   // multiply $1 by $2
         Opcode.SAVETOR, 1, 0,   10,  // save 10 in memory at address pointed by $1
         Opcode.LOADAR,  3, 1,   0,   // load memory pointed at $1 to $3
         Opcode.HALT,    0, 0, 0
@@ -897,12 +897,12 @@ test('SAVE [$1] 10, where $1 points to (256 * 256 - 1) * 256 + 255 = 256 * 256 *
         8, 0, 0, 0,
         Opcode.LOAD,    1, 127, 255, // put (256 * 128 - 1) in $1, our memory pointer
         Opcode.LOAD,    13, 127, 255, // put (256 * 128 - 1) in $13
-        Opcode.ADD,     1, 13, 1,    // add $13 to $1
+        Opcode.ADD,     1, 1, 13,    // add $13 to $1
         Opcode.ADDI,    1, 1, 1,     // add 1 to $1
         Opcode.LOAD,    2, 1,   0,   // put 256 in $2, our multiplier
         Opcode.LOAD,    3, 0,   255, // put 255 in $3, our out of bounds memory offset
-        Opcode.MUL,     1, 2,   1,   // multiply $1 by $2
-        Opcode.ADD,     1, 3,   1,   // add $3 to $1
+        Opcode.MUL,     1, 1,   2,   // multiply $1 by $2
+        Opcode.ADD,     1, 1,   3,   // add $3 to $1
         Opcode.SAVETOR, 1, 0,   10,  // save 10 in memory at address pointed by $1
         Opcode.HALT,    0, 0, 0
     ]);
@@ -925,7 +925,7 @@ test('PROGRAM #3 - with memory stuff', () => {
         /* 16 */ Opcode.LOAD,     3,   0,  1, // put 1 in $3, our increment
         /* 20 */ Opcode.LOAD,     4,   0,  24,// put 28 in $4, the start index of our "loop"
         /* 24 */ Opcode.SAVERTOR, 1,   0,  1, // save value of $1 in memory at address [$1]
-        /* 28 */ Opcode.ADD,      1,   3,  1, // add $3 (incrementer) to $1 and save it to $1
+        /* 28 */ Opcode.ADD,      1,   1,  3, // add $3 (incrementer) to $1 and save it to $1
         /* 32 */ Opcode.CMP,      1,   2,  0, // compare $1 with $2
         /* 36 */ Opcode.JLTE,     4,   0,  0, // jump to start of loop while $1 <= $2
         /* 40 */ Opcode.HALT,     0,   0,  0
@@ -957,23 +957,23 @@ test('PROGRAM #4 - with memory offset stuff', () => {
         Opcode.LOAD,     2,   0,  0, // put 0 in $2, our value
         Opcode.LOAD,     3,   0,  1, // put 1 in $3, our incrementer
         Opcode.SAVERTOR, 1,   0,  2, // put 0 in memory at address [$1, 0]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   1,  2, // put 1 in memory at address [$1, 1]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   2,  2, // put 2 in memory at address [$1, 2]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   3,  2, // put 3 in memory at address [$1, 3]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   4,  2, // put 4 in memory at address [$1, 4]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   5,  2, // put 5 in memory at address [$1, 5]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   6,  2, // put 6 in memory at address [$1, 6]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   7,  2, // put 7 in memory at address [$1, 7]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   8,  2, // put 8 in memory at address [$1, 8]
-        Opcode.ADD,      2,   3,  2, // add incrementor to value ($3 to $2)
+        Opcode.ADD,      2,   2,  3, // add incrementor to value ($3 to $2)
         Opcode.SAVERTOR, 1,   9,  2, // put 9 in memory at address [$1, 9]
         Opcode.HALT,     0,   0,  0
     ]);
@@ -1146,7 +1146,7 @@ test('AND', () => {
         8, 0, 0, 0,
         Opcode.LOAD, 1, 0, 1,
         Opcode.LOAD, 2, 0, 3,
-        Opcode.AND,  1, 2, 0,
+        Opcode.AND,  0, 1, 2,
         Opcode.HALT, 0, 0, 0
     ]);
 
@@ -1162,7 +1162,7 @@ test('OR', () => {
         8, 0, 0, 0,
         Opcode.LOAD, 1, 0, 1,
         Opcode.LOAD, 2, 0, 2,
-        Opcode.OR,  1, 2, 0,
+        Opcode.OR,   1, 2, 0,
         Opcode.HALT, 0, 0, 0
     ]);
 
