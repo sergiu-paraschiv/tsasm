@@ -444,12 +444,12 @@ test('handles labeled .asciiz', () => {
     expect(data.debugData!.labels).toBeDefined();
 
     expect(data.debugData!.labels).toEqual({
-        'L1': 8,
-        'L2': 42,
+        'L1': 64,
+        'L2': 98,
         'L3': 108,
-        'L4': 44,
+        'L4': 100,
         'L5': 112,
-        'L6': 45
+        'L6': 101
     });
 });
 
@@ -1060,13 +1060,13 @@ test('stack size can be adjusted', () => {
     const assembler = new Assembler();
 
     const data = assembler.run(`
-        .stack 10
+        .stack 12
         SHR $1 $2 1
     `);
 
     expect(data.program.slice(0, 8)).toEqual(new Uint8Array([
         ... ID_HEADER,
-        0, 10, 0, 0
+        0, 12, 0, 0
     ]));
 });
 

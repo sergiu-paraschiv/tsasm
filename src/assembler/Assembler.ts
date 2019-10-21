@@ -439,7 +439,7 @@ export class Assembler {
                 if (label) {
                     labels[label] = (
                         2 * Assembler.OP_LENGTH
-                    ) + constants.length;
+                    ) + constants.length + 56; // 56 = header padding
                 }
 
                 for (let j = 0; j < op[1].length; j++) {

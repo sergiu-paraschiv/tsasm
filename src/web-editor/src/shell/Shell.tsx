@@ -9,20 +9,26 @@ const INITIAL_VALUE = `
 .asciiz '----------'
 DONE: .asciiz 'Done.'
 
-        LOAD $1 50
-        LOAD $2 10
+        LOAD $1 50 ; a comment
+        LOAD $2 10 ; another comment
         LOAD $10 0
         LOAD $11 0
         LOAD $12 1
+
+;
+; this comment 
+; is on multiple lines :)
+; and contains START SUB $1 ADD CMP
+;
         
-        
-START:  SUB  $1 $2 $1
-        ADD  $11 $12 $11
+START:  SUB  $1 $1 $2
+        ADD  $11 $11 $12
         CMP  $1 $10
+        
+        PUSH $1
         
         JEQ  END
         JMP  START
-        
         
 END:    PUTS DONE
         HALT
@@ -38,6 +44,7 @@ interface IState {
     validBreakpoints: number[]
     error?: ParserError;
     outputBuffer: Uint8Array;
+    memoryViewSpan: [ number, number ];
 }
 
 export default class Shell extends React.PureComponent<{}, IState> {
@@ -55,15 +62,39 @@ export default class Shell extends React.PureComponent<{}, IState> {
             iterations: undefined,
             validBreakpoints: [],
             error: undefined,
-            outputBuffer: new Uint8Array()
+            outputBuffer: new Uint8Array(),
+            memoryViewSpan: [64, 100]
         };
     }
 
     render() {
-        const { running, crtPc, breakpoints, validBreakpoints, error, outputBuffer } = this.state;
+        const { running, crtPc, breakpoints, validBreakpoints, error, outputBuffer, memoryViewSpan } = this.state;
 
         let ob = '';
         outputBuffer.forEach(charCode => ob += String.fromCharCode(charCode));
+
+        let memory = '';
+        if (this.crtVM) {
+            let o = 0;
+            for (let i = memoryViewSpan[0]; i <= memoryViewSpan[1]; i++) {
+                if (!(o % 4)) {
+                    memory += '\n' + i + ': ';
+                }
+                memory += this.crtVM.memory.get(i) + ' ';
+
+                o += 1;
+            }
+        }
+
+        let stack = '';
+        if (this.crtVM) {
+            for (let i = VM.MEMORY_SIZE - 3; i > this.crtVM.registers[13]; i -= 4) {
+                stack += this.crtVM.memory.get(i - 3).toString() + ' ';
+                stack += this.crtVM.memory.get(i - 2).toString() + ' ';
+                stack += this.crtVM.memory.get(i - 1).toString() + ' ';
+                stack += this.crtVM.memory.get(i - 0).toString() + '\n';
+            }
+        }
 
         return (
             <div>
@@ -106,6 +137,27 @@ export default class Shell extends React.PureComponent<{}, IState> {
                         <textarea
                             readOnly={true}
                             value={ob}
+                        />
+
+                        <div><strong>Memory</strong></div>
+                        <div>
+                            <input type="number" value={memoryViewSpan[0]}
+                                   onChange={e => this.setState({ memoryViewSpan: [parseInt(e.target.value, 10), memoryViewSpan[1]] })} />
+                            -
+                            <input type="number" value={memoryViewSpan[1]}
+                                   onChange={e => this.setState({ memoryViewSpan: [memoryViewSpan[0], parseInt(e.target.value, 10)] })} />
+                        </div>
+                        <textarea
+                            style={{ width: '400px', height: '300px' }}
+                            readOnly={true}
+                            value={memory}
+                        />
+
+                        <div><strong>Stack</strong></div>
+                        <textarea
+                            style={{ width: '400px', height: '300px' }}
+                            readOnly={true}
+                            value={stack}
                         />
                     </div>
                 ) : null}
@@ -170,6 +222,7 @@ export default class Shell extends React.PureComponent<{}, IState> {
             const assembler = new Assembler();
 
             this.crtVM = new VM();
+            this.crtVM.debug = true;
 
             const data = assembler.run(this.state.code, true);
             this.crtVM.program = data.program;
