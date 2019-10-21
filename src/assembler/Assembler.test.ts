@@ -1072,7 +1072,6 @@ test('AND $1 $2', () => {
     ]));
 });
 
-
 test('OR $1 $2', () => {
     const assembler = new Assembler();
 
@@ -1084,7 +1083,6 @@ test('OR $1 $2', () => {
         Opcode.OR, 1, 2, 0
     ]));
 });
-
 
 test('XOR $1 $2', () => {
     const assembler = new Assembler();
@@ -1098,7 +1096,6 @@ test('XOR $1 $2', () => {
     ]));
 });
 
-
 test('NOT $1', () => {
     const assembler = new Assembler();
 
@@ -1111,7 +1108,6 @@ test('NOT $1', () => {
     ]));
 });
 
-
 test('BIC $1 $2', () => {
     const assembler = new Assembler();
 
@@ -1123,3 +1119,53 @@ test('BIC $1 $2', () => {
         Opcode.BIC, 1, 2, 0
     ]));
 });
+
+test('SHL $1 $2 $3', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SHL $1 $2 $3');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SHL, 1, 2, 3
+    ]));
+});
+
+test('SHL $1 $2 1', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SHL $1 $2 1');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SHLI, 1, 2, 1
+    ]));
+});
+
+test('SHR $1 $2 $3', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SHR $1 $2 $3');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SHR, 1, 2, 3
+    ]));
+});
+
+test('SHR $1 $2 1', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SHR $1 $2 1');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SHRI, 1, 2, 1
+    ]));
+});
+
+

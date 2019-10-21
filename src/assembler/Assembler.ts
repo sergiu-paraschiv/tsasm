@@ -332,6 +332,27 @@ export class Assembler {
                         program[codeOffset + 3] = 0;
                         break;
 
+
+                    case Opcode.SHL:
+                    case Opcode.SHR:
+                        program[codeOffset + 1] = op[1].reg;
+                        program[codeOffset + 2] = op[2].reg;
+
+                        if (op[3].reg) {
+                            program[codeOffset + 3] = op[3].reg;
+                        }
+                        else {
+                            if (opcode === Opcode.SHL) {
+                                program[codeOffset] = Opcode.SHLI;
+                            }
+                            else {
+                                program[codeOffset] = Opcode.SHRI;
+                            }
+
+                            program[codeOffset + 3] = op[3];
+                        }
+                        break;
+
                     default:
                         // this should never happen
                 }

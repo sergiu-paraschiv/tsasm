@@ -974,6 +974,74 @@ export class VM {
                 );
                 break;
 
+            case Opcode.SHL:
+                const SHL_register1 = this.next8Bits();
+                const SHL_register2 = this.next8Bits();
+                const SHL_register3 = this.next8Bits();
+
+                const SHL_pre = this.registers[SHL_register1];
+                this.registers[SHL_register1] = this.registers[SHL_register2] << this.registers[SHL_register3];
+
+                this.log(
+                    'SHL',
+                    '[', SHL_register1, ':', SHL_pre, ']',
+                    '[', SHL_register2, ':', this.registers[SHL_register2], ']',
+                    '[', SHL_register3, ':', this.registers[SHL_register3], ']',
+                    'res:', this.registers[SHL_register1]
+                );
+                break;
+
+            case Opcode.SHLI:
+                const SHLI_register1 = this.next8Bits();
+                const SHLI_register2 = this.next8Bits();
+                const SHLI_val = this.next8BitsSigned();
+
+                const SHLI_pre = this.registers[SHLI_register1];
+                this.registers[SHLI_register1] = this.registers[SHLI_register2] << SHLI_val;
+
+                this.log(
+                    'SHLI',
+                    '[', SHLI_register1, ':', SHLI_pre, ']',
+                    '[', SHLI_register2, ':', this.registers[SHLI_register2], ']',
+                    '[', SHLI_val, ']',
+                    'res:', this.registers[SHLI_register1]
+                );
+                break;
+
+            case Opcode.SHR:
+                const SHR_register1 = this.next8Bits();
+                const SHR_register2 = this.next8Bits();
+                const SHR_register3 = this.next8Bits();
+
+                const SHR_pre = this.registers[SHR_register1];
+                this.registers[SHR_register1] = this.registers[SHR_register2] >>> this.registers[SHR_register3];
+
+                this.log(
+                    'SHR',
+                    '[', SHR_register1, ':', SHR_pre, ']',
+                    '[', SHR_register2, ':', this.registers[SHR_register2], ']',
+                    '[', SHR_register3, ':', this.registers[SHR_register3], ']',
+                    'res:', this.registers[SHR_register1]
+                );
+                break;
+
+            case Opcode.SHRI:
+                const SHRI_register1 = this.next8Bits();
+                const SHRI_register2 = this.next8Bits();
+                const SHRI_val = this.next8BitsSigned();
+
+                const SHRI_pre = this.registers[SHRI_register1];
+                this.registers[SHRI_register1] = this.registers[SHRI_register2] >>> SHRI_val;
+
+                this.log(
+                    'SHRI',
+                    '[', SHRI_register1, ':', SHRI_pre, ']',
+                    '[', SHRI_register2, ':', this.registers[SHRI_register2], ']',
+                    '[', SHRI_val, ']',
+                    'res:', this.registers[SHRI_register1]
+                );
+                break;
+
             default:
                 throw new VMError(`Unrecognized opcode [${opcode}] found! PC: ${this.pc} Terminating!`);
         }

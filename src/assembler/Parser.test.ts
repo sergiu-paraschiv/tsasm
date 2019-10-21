@@ -965,3 +965,47 @@ test('BIC $1 $2', () => {
         ['BIC', { reg: 1 }, { reg: 2 }]
     ]);
 });
+
+test('SHL $1 $2 $3', () => {
+    const parser = new Parser();
+
+    parser.feed('SHL $1 $2 $3\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SHL', { reg: 1 }, { reg: 2 }, { reg: 3 }]
+    ]);
+});
+
+test('SHL $1 $2 1', () => {
+    const parser = new Parser();
+
+    parser.feed('SHL $1 $2 1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SHL', { reg: 1 }, { reg: 2 }, 1]
+    ]);
+});
+
+test('SHR $1 $2 $3', () => {
+    const parser = new Parser();
+
+    parser.feed('SHR $1 $2 $3\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SHR', { reg: 1 }, { reg: 2 }, { reg: 3 }]
+    ]);
+});
+
+test('SHR $1 $2 1', () => {
+    const parser = new Parser();
+
+    parser.feed('SHR $1 $2 1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SHR', { reg: 1 }, { reg: 2 }, 1]
+    ]);
+});

@@ -12,24 +12,25 @@ segment -> instr                  {% id %}
 dir -> ".asciiz" __ "'" .:* "'"   {% d => [ d[0], d[3].join("") ] %}
 
 
-instr -> instr_no_op                             {% d => [ d[0] ] %}
-       | instr_1_reg    __ reg                   {% d => [ d[0], d[2] ] %}
-       | instr_1_label  __ label                 {% d => [ d[0], d[2] ] %}
-       | instr_2_reg    __ reg  __ reg           {% d => [ d[0], d[2], d[4] ] %}
-       | instr_1_reg_int __ reg __ int16         {% d => [ d[0], d[2], d[4] ] %}
-       | instr_2_reg_int __ reg __ int8 __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
-       | instr_3_reg    __ reg  __ reg  __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
-       | instr_reg_list __ regs                  {% d => [ d[0], d[2] ] %}
-       | "LOAD"         __ reg  __ int16         {% d => [ d[0], d[2], d[4] ] %}
-       | "LOAD"         __ reg  __ addr          {% d => [ d[0], d[2], d[4] ] %}
-       | "SAVE"         __ addr __ int8          {% d => [ d[0], d[2], d[4] ] %}
-       | "SAVE"         __ addr __ reg           {% d => [ d[0], d[2], d[4] ] %}
+instr -> instr_no_op                                       {% d => [ d[0] ] %}
+       | instr_reg              __ reg                     {% d => [ d[0], d[2] ] %}
+       | instr_label            __ label                   {% d => [ d[0], d[2] ] %}
+       | instr_reg_reg          __ reg  __ reg             {% d => [ d[0], d[2], d[4] ] %}
+       | instr_reg_int16        __ reg  __ int16           {% d => [ d[0], d[2], d[4] ] %}
+       | instr_reg_int8_reg     __ reg  __ int8   __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
+       | instr_reg_reg_uint8    __ reg  __ reg    __ uint8 {% d => [ d[0], d[2], d[4], d[6] ] %}
+       | instr_reg_reg_reg      __ reg  __ reg    __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
+       | instr_reg_list         __ regs                    {% d => [ d[0], d[2] ] %}
+       | "LOAD"                 __ reg  __ int16           {% d => [ d[0], d[2], d[4] ] %}
+       | "LOAD"                 __ reg  __ addr            {% d => [ d[0], d[2], d[4] ] %}
+       | "SAVE"                 __ addr __ int8            {% d => [ d[0], d[2], d[4] ] %}
+       | "SAVE"                 __ addr __ reg             {% d => [ d[0], d[2], d[4] ] %}
 
 
 instr_no_op -> "HALT"    {% id %}
              | "RET"     {% id %}
 
-instr_1_label -> "JMP"   {% id %}
+instr_label   -> "JMP"   {% id %}
                | "JEQ"   {% id %}
                | "JNEQ"  {% id %}
                | "JGT"   {% id %}
@@ -39,7 +40,7 @@ instr_1_label -> "JMP"   {% id %}
                | "PUTS"  {% id %}
                | "CALL"  {% id %}
 
-instr_1_reg -> "JMP"     {% id %}
+instr_reg   -> "JMP"     {% id %}
              | "JMPF"    {% id %}
              | "JMPB"    {% id %}
              | "JEQ"     {% id %}
@@ -54,26 +55,31 @@ instr_1_reg -> "JMP"     {% id %}
              | "DEC"     {% id %}
              | "NOT"     {% id %}
 
-instr_2_reg -> "CMP"     {% id %}
-             | "CMPN"    {% id %}
-             | "MOV"     {% id %}
-             | "AND"     {% id %}
-             | "OR"      {% id %}
-             | "XOR"     {% id %}
-             | "BIC"     {% id %}
+instr_reg_reg   -> "CMP"     {% id %}
+                 | "CMPN"    {% id %}
+                 | "MOV"     {% id %}
+                 | "AND"     {% id %}
+                 | "OR"      {% id %}
+                 | "XOR"     {% id %}
+                 | "BIC"     {% id %}
 
-instr_1_reg_int -> "CMP"     {% id %}
+instr_reg_int16 -> "CMP"     {% id %}
                  | "CMPN"    {% id %}
 
-instr_3_reg -> "ADD"     {% id %}
-             | "SUB"     {% id %}
-             | "DIV"     {% id %}
-             | "MUL"     {% id %}
+instr_reg_reg_reg   -> "ADD"     {% id %}
+                     | "SUB"     {% id %}
+                     | "DIV"     {% id %}
+                     | "MUL"     {% id %}
+                     | "SHL"     {% id %}
+                     | "SHR"     {% id %}
 
-instr_2_reg_int -> "ADD"     {% id %}
-                 | "SUB"     {% id %}
-                 | "DIV"     {% id %}
-                 | "MUL"     {% id %}
+instr_reg_int8_reg  -> "ADD"     {% id %}
+                     | "SUB"     {% id %}
+                     | "DIV"     {% id %}
+                     | "MUL"     {% id %}
+
+instr_reg_reg_uint8 -> "SHL"     {% id %}
+                     | "SHR"     {% id %}
 
 instr_reg_list -> "PUSH" {% id %}
                 | "POP"  {% id %}

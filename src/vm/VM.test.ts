@@ -1216,3 +1216,65 @@ test('BIC', () => {
     vm.run();
     expect(vm.registers[1]).toBe(14);
 });
+
+test('SHL $1 $2 $3', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 2, 0, 1,
+        Opcode.LOAD, 3, 0, 1,
+        Opcode.SHL,  1, 2, 3,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(2);
+});
+
+test('SHL $1 $2 1', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 2, 0, 1,
+        Opcode.SHLI,  1, 2, 1,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(2);
+});
+
+test('SHR $1 $2 $3', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 2, 0, 2,
+        Opcode.LOAD, 3, 0, 1,
+        Opcode.SHR,  1, 2, 3,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(1);
+});
+
+test('SHR $1 $2 1', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 2, 0, 2,
+        Opcode.SHRI,  1, 2, 1,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(1);
+});

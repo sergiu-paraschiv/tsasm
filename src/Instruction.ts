@@ -50,6 +50,10 @@ export enum Opcode {
     XOR,
     NOT,
     BIC,
+    SHL,
+    SHLI,
+    SHR,
+    SHRI,
     HEAD     = 199,
     ILGL
 }
@@ -93,7 +97,9 @@ export const OpcodeMAP: {
     'OR' : Opcode.OR,
     'XOR' : Opcode.XOR,
     'NOT' : Opcode.NOT,
-    'BIC' : Opcode.BIC
+    'BIC' : Opcode.BIC,
+    'SHL' : Opcode.SHL,
+    'SHR' : Opcode.SHR
 };
 
 export enum Directive {
