@@ -119,7 +119,9 @@ export default class Shell extends React.PureComponent<{}, IState> {
 
                 {(this.debugData && this.crtVM) ? (
                     <div className="shell_watch">
-                        <div><strong>PC:</strong> {crtPc}</div>
+                        <div>
+                            <strong>PC:</strong> {crtPc}
+                        </div>
                         <div><strong>Flags</strong></div>
                         <div>remainder: {this.crtVM!.flags.remainder}</div>
                         <div>equal: {this.crtVM!.flags.equal ? 'true' : 'false'}</div>

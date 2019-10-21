@@ -36,6 +36,11 @@ ace.define('ace/mode/tsasm', ['require', 'exports', 'ace/lib/oop', 'ace/mode/tex
                 {
                     token: 'support.function.label-parameter.assembly',
                     regex: /[A-Z][A-Z0-9]*/
+                },
+
+                {
+                    token: 'comment.assembly',
+                    regex: ';.*$'
                 }
             ]
         };
