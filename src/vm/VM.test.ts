@@ -4,6 +4,29 @@ import { ID_HEADER, Opcode } from '../Instruction';
 import { MemoryError } from './MemoryError';
 
 
+const HEADER_SECTION_NO_BODY_OFFSET = [
+    ... ID_HEADER,
+    255, 255, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+];
+
+const HEADER_SECTION = [
+    ... HEADER_SECTION_NO_BODY_OFFSET,
+    64, 0, 0, 0,
+];
+
 test('a VM is initialized', () => {
     const vm = new VM();
     expect(vm.registers[0]).toBe(0);
@@ -550,18 +573,17 @@ test('Simple PROGRAM', () => {
     const vm = new VM();
 
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1,  1,  244,  // 8
-        Opcode.LOAD, 2,  0,  10,   // 12
-        Opcode.LOAD, 10, 0,  0,    // 16
-        Opcode.LOAD, 11, 0,  44,   // 20
-        Opcode.LOAD, 12, 0,  28,   // 24
-        Opcode.SUB,  1,  1,  2,    // 28
-        Opcode.CMP,  1,  10, 0,    // 32
-        Opcode.JEQ,  11, 0,  0,    // 36
-        Opcode.JMP,  12, 0,  0,    // 40
-        Opcode.HALT, 0,  0,  0     // 44
+        ... HEADER_SECTION,
+        Opcode.LOAD, 1,  1,  244,  // 64
+        Opcode.LOAD, 2,  0,  10,   // 68
+        Opcode.LOAD, 10, 0,  0,    // 72
+        Opcode.LOAD, 11, 0,  100,  // 76
+        Opcode.LOAD, 12, 0,  84,   // 80
+        Opcode.SUB,  1,  1,  2,    // 84
+        Opcode.CMP,  1,  10, 0,    // 88
+        Opcode.JEQ,  11, 0,  0,    // 92
+        Opcode.JMP,  12, 0,  0,    // 96
+        Opcode.HALT, 0,  0,  0     // 100
     ]);
 
     vm.run();
@@ -572,13 +594,12 @@ test('Simple PROGRAM', () => {
 test('identifying HEADER', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.HALT, 0,  0,  0
     ]);
 
     vm.run();
-    expect(vm.registers[15]).toBe(12);
+    expect(vm.registers[15]).toBe(68);
 });
 
 test('throws on missing HEADER', () => {
@@ -603,129 +624,103 @@ test('throws on bad HEADER', () => {
 test('HEADER section with constants', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        12, 0, 0, 0, // index of body
+        ... HEADER_SECTION_NO_BODY_OFFSET,
+        68, 0, 0, 0, // index of body
         102, 111, 111, 0, // 'f' 'o' 'o' 0
         Opcode.LOAD, 1, 1, 244,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.registers[15]).toBe(20);
+    expect(vm.registers[15]).toBe(76);
 });
 
 test('PROGRAM #2', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        16, 0, 0, 0,
+        ... HEADER_SECTION_NO_BODY_OFFSET,
+        72, 0, 0, 0,
         102, 111, 111, 0,
         98, 97, 114 , 0,
-        Opcode.LOAD, 1,  0,  50,
-        Opcode.LOAD, 2,  0,  10,
-        Opcode.LOAD, 10, 0,  0,
-        Opcode.LOAD, 11, 0,  0,
-        Opcode.LOAD, 12, 0,  1,
-        Opcode.SUB,  1,  1,  2,
-        Opcode.ADD,  11, 11, 12,
-        Opcode.CMP,  1,  10, 0,
-        Opcode.JEQL, 56, 0,  0,
-        Opcode.JMPL, 36, 0,  0,
-        Opcode.HALT, 0,  0, 0
+        /* 72  */ Opcode.LOAD, 1,  0,  50,
+        /* 76  */ Opcode.LOAD, 2,  0,  10,
+        /* 80  */ Opcode.LOAD, 10, 0,  0,
+        /* 84  */ Opcode.LOAD, 11, 0,  0,
+        /* 88  */ Opcode.LOAD, 12, 0,  1,
+        /* 92  */ Opcode.SUB,  1,  1,  2,
+        /* 96  */ Opcode.ADD,  11, 11, 12,
+        /* 100 */ Opcode.CMP,  1,  10, 0,
+        /* 104 */ Opcode.JEQL, 112, 0,  0,
+        /* 108 */ Opcode.JMPL, 92, 0,  0,
+        /* 112 */ Opcode.HALT, 0,  0, 0
     ]);
 
     vm.run();
     expect(vm.registers[1]).toBe(0);
     expect(vm.registers[11]).toBe(5);
-    expect(vm.registers[15]).toBe(60);
+    expect(vm.registers[15]).toBe(116);
 });
 
 test('PUTS FOO', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        12, 0, 0, 0, // index of body
+        ... HEADER_SECTION_NO_BODY_OFFSET,
+        68, 0, 0, 0, // index of body
         102, 111, 111, 0, // 'f' 'o' 'o' 0
-        Opcode.PUTS, 8, 0, 0,
+        Opcode.PUTS, 64, 0, 0,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.registers[15]).toBe(20);
+    expect(vm.registers[15]).toBe(76);
     expect(vm.outputBuffer).toEqual(Uint8Array.from([102, 111, 111, 0]));
 });
 
 test('SAVE [0] 10', () => {
     const vm = new VM();
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.SAVE, 0, 0, 10,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SAVE, 0, 0, 10]);
 
-    vm.run();
+    vm.exec();
     expect(vm.memory.get(0)).toBe(10);
 });
 
 test('SAVE [0] -100', () => {
     const vm = new VM();
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.SAVE, 0, 0, 156,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SAVE, 0, 0, 156]);
 
-    vm.run();
+    vm.exec();
     expect(vm.memory.get(0)).toBe(156);
 });
 
 test('SAVE [65534] 10', () => {
     const vm = new VM();
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.SAVE, 255, 254, 10,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SAVE, 255, 254, 10]);
 
-    vm.run();
+    vm.exec();
     expect(vm.memory.get(65534)).toBe(10);
 });
 
 test('SAVE [100, 255] 10', () => {
     const vm = new VM();
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.SAVE, 1, 99, 10,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SAVE, 1, 99, 10]);
 
-    vm.run();
+    vm.exec();
     expect(vm.memory.get(355)).toBe(10);
 });
 
 test('LOAD $1 [0]', () => {
     const vm = new VM();
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.SAVE, 0, 0, 10,
-        Opcode.LOADA, 1, 0, 0,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.registers[1] = 100;
+    vm.program = Uint8Array.from([Opcode.LOADA, 1, 0, 0]);
 
-    vm.run();
-    expect(vm.registers[1]).toBe(10);
+    vm.exec();
+    expect(vm.registers[1]).toBe(Opcode.LOADA);
 });
 
 test('LOAD $1 [100, 255]', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.SAVE, 1, 99, 10,
         Opcode.LOADA, 1, 1, 99,
         Opcode.HALT, 0, 0, 0
@@ -738,8 +733,7 @@ test('LOAD $1 [100, 255]', () => {
 test('LOAD $1 [$2]', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.SAVE, 0, 0, 10,
         Opcode.LOAD, 2, 0, 0,
         Opcode.LOADAR, 1, 2, 0,
@@ -753,8 +747,7 @@ test('LOAD $1 [$2]', () => {
 test('LOAD $1 [$2, 255]', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.SAVE, 0, 255, 10,
         Opcode.LOAD, 2, 0, 0,
         Opcode.LOADAR, 1, 2, 255,
@@ -768,8 +761,7 @@ test('LOAD $1 [$2, 255]', () => {
 test('SAVE [$1] 10, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
         Opcode.SAVETOR, 1, 0, 10,
         Opcode.HALT, 0, 0, 0
@@ -782,8 +774,7 @@ test('SAVE [$1] 10, $1 = 32767', () => {
 test('SAVE [$1] -10, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
         Opcode.SAVETOR, 1, 0, 246,
         Opcode.HALT, 0, 0, 0
@@ -796,8 +787,7 @@ test('SAVE [$1] -10, $1 = 32767', () => {
 test('SAVE [$1, 255] 100, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
         Opcode.SAVETOR, 1, 255, 10,
         Opcode.HALT, 0, 0, 0
@@ -810,8 +800,7 @@ test('SAVE [$1, 255] 100, $1 = 32767', () => {
 test('SAVE [0] $2', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 2, 0, 10,
         Opcode.SAVER, 0, 0, 2,
         Opcode.HALT, 0, 0, 0
@@ -824,8 +813,7 @@ test('SAVE [0] $2', () => {
 test('SAVE [0] $2, $2 = 32767, overflowing int', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 2, 255, 254,
         Opcode.SAVER, 0, 0, 2,
         Opcode.HALT, 0, 0, 0
@@ -839,8 +827,7 @@ test('SAVE [0] $2, $2 = 32767, overflowing int', () => {
 test('SAVE [$1] $2, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
         Opcode.LOAD, 2, 0, 10,
         Opcode.SAVERTOR, 1, 0, 2,
@@ -854,8 +841,7 @@ test('SAVE [$1] $2, $1 = 32767', () => {
 test('SAVE [$1, 255] $2, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
         Opcode.LOAD, 2, 0, 10,
         Opcode.SAVERTOR, 1, 255, 2,
@@ -870,8 +856,7 @@ test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () =
     const vm = new VM();
 
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD,    1, 127, 255, // put (256 * 128 - 1) in $1, our memory pointer
         Opcode.LOAD,    13, 127, 255, // put (256 * 128 - 1) in $13
         Opcode.ADD,     1, 1, 13,    // add $13 to $1
@@ -893,8 +878,7 @@ test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () =
 test('SAVE [$1] 10, where $1 points to (256 * 256 - 1) * 256 + 255 = 256 * 256 * 256 - 1, out of bounds', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD,    1, 127, 255, // put (256 * 128 - 1) in $1, our memory pointer
         Opcode.LOAD,    13, 127, 255, // put (256 * 128 - 1) in $13
         Opcode.ADD,     1, 1, 13,    // add $13 to $1
@@ -916,33 +900,25 @@ test('SAVE [$1] 10, where $1 points to (256 * 256 - 1) * 256 + 255 = 256 * 256 *
 test('PROGRAM #3 - with memory stuff', () => {
     const vm = new VM();
 
-    // builds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] in memory
+    // builds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] in memory at offset 255
     vm.program = Uint8Array.from([
-        /* 0  */ ... ID_HEADER,
-        /* 4  */ 8, 0, 0, 0,
-        /* 8 */  Opcode.LOAD,     1,   0,  0, // put 0 in $1, our start index
-        /* 12 */ Opcode.LOAD,     2,   0,  9, // put 9 in $2, our end index
-        /* 16 */ Opcode.LOAD,     3,   0,  1, // put 1 in $3, our increment
-        /* 20 */ Opcode.LOAD,     4,   0,  24,// put 28 in $4, the start index of our "loop"
-        /* 24 */ Opcode.SAVERTOR, 1,   0,  1, // save value of $1 in memory at address [$1]
-        /* 28 */ Opcode.ADD,      1,   1,  3, // add $3 (incrementer) to $1 and save it to $1
-        /* 32 */ Opcode.CMP,      1,   2,  0, // compare $1 with $2
-        /* 36 */ Opcode.JLTE,     4,   0,  0, // jump to start of loop while $1 <= $2
-        /* 40 */ Opcode.HALT,     0,   0,  0
+        ... HEADER_SECTION,
+        /* 64  */ Opcode.LOAD,     1,   0,  0,   // put 0 in $1, our start index
+        /* 68  */ Opcode.LOAD,     2,   0,  9,   // put 9 in $2, our end index
+        /* 72  */ Opcode.LOAD,     3,   0,  1,   // put 1 in $3, our increment
+        /* 76  */ Opcode.LOAD,     4,   0,  0,   // unused
+        /* 80  */ Opcode.SAVERTOR, 1, 255,  1,   // save value of $1 in memory at address [$1, 255]
+        /* 84  */ Opcode.ADD,      1,   1,  3,   // add $3 (incrementer) to $1 and save it to $1
+        /* 88  */ Opcode.CMP,      1,   2,  0,   // compare $1 with $2
+        /* 102 */ Opcode.JLTEL,    80,  0,  0,   // jump to start of loop while $1 <= $2
+        /* 106 */ Opcode.HALT,     0,   0,  0
     ]);
 
     vm.run();
 
-    expect(vm.memory.get(0)).toBe(0);
-    expect(vm.memory.get(1)).toBe(1);
-    expect(vm.memory.get(2)).toBe(2);
-    expect(vm.memory.get(3)).toBe(3);
-    expect(vm.memory.get(4)).toBe(4);
-    expect(vm.memory.get(5)).toBe(5);
-    expect(vm.memory.get(6)).toBe(6);
-    expect(vm.memory.get(7)).toBe(7);
-    expect(vm.memory.get(8)).toBe(8);
-    expect(vm.memory.get(9)).toBe(9);
+    for (let i = 0; i <= 9; i++) {
+        expect(vm.memory.get(i + 255)).toBe(i);
+    }
 });
 
 
@@ -951,9 +927,8 @@ test('PROGRAM #4 - with memory offset stuff', () => {
 
     // builds [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] in memory
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD,     1,   0,  0, // put 0 in $1, our start address
+        ... HEADER_SECTION,
+        Opcode.LOAD,     1,   0,  255, // put 255 in $1, our start address
         Opcode.LOAD,     2,   0,  0, // put 0 in $2, our value
         Opcode.LOAD,     3,   0,  1, // put 1 in $3, our incrementer
         Opcode.SAVERTOR, 1,   0,  2, // put 0 in memory at address [$1, 0]
@@ -980,37 +955,25 @@ test('PROGRAM #4 - with memory offset stuff', () => {
 
     vm.run();
 
-    expect(vm.memory.get(0)).toBe(0);
-    expect(vm.memory.get(1)).toBe(1);
-    expect(vm.memory.get(2)).toBe(2);
-    expect(vm.memory.get(3)).toBe(3);
-    expect(vm.memory.get(4)).toBe(4);
-    expect(vm.memory.get(5)).toBe(5);
-    expect(vm.memory.get(6)).toBe(6);
-    expect(vm.memory.get(7)).toBe(7);
-    expect(vm.memory.get(8)).toBe(8);
-    expect(vm.memory.get(9)).toBe(9);
+    for (let i = 0; i <= 9; i++) {
+        expect(vm.memory.get(i + 255)).toBe(i);
+    }
 });
 
 test('PUSH $1', () => {
     const vm = new VM();
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 127, 255,
-        Opcode.PUSH, 1, 0, 0,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.registers[1] = 256 * 128 - 1;
 
-    vm.run();
+    vm.program = Uint8Array.from([Opcode.PUSH, 1, 0, 0]);
+
+    vm.exec();
     expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
 test('POP $2', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
         Opcode.PUSH, 1, 0, 0,
         Opcode.POP,  2, 0, 0,
@@ -1024,46 +987,31 @@ test('POP $2', () => {
 
 test('PUSH { $0 }', () => {
     const vm = new VM();
+    vm.registers[0] = 256 * 128 - 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 0, 127, 255,
-        Opcode.PUSHM,0, 0, 1,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.PUSHM,0, 0, 1]);
 
-    vm.run();
+    vm.exec();
     expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
 test('PUSH { $1 }', () => {
     const vm = new VM();
+    vm.registers[1] = 256 * 128 - 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 127, 255,
-        Opcode.PUSHM, 0, 0, 17,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([ Opcode.PUSHM, 0, 0, 17]);
 
-    vm.run();
+    vm.exec();
     expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
 test('PUSH { $2 }', () => {
     const vm = new VM();
+    vm.registers[2] = 256 * 128 - 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 2, 127, 255,
-        Opcode.PUSHM, 0, 0, 33,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.PUSHM, 0, 0, 33]);
 
-    vm.run();
+    vm.exec();
     expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
@@ -1071,8 +1019,7 @@ test('PUSH { $1 $2 } -> POP { $2 $1 }', () => {
     const vm = new VM();
 
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 0, 1,
         Opcode.LOAD, 2, 0, 2,
         Opcode.PUSHM, 0, 1, 34,
@@ -1089,8 +1036,7 @@ test('PUSH { $1 $2 } -> POP { $1 $2 }', () => {
     const vm = new VM();
 
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
+        ... HEADER_SECTION,
         Opcode.LOAD, 1, 0, 1,
         Opcode.LOAD, 2, 0, 2,
         Opcode.PUSHM, 0, 1, 34,
@@ -1107,12 +1053,11 @@ test('CALL + RET', () => {
     const vm = new VM();
 
     vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.CALL, 16, 0, 0,
+        ... HEADER_SECTION,
+        Opcode.CALL, 72, 0, 0,
         Opcode.HALT, 0, 0, 0,
         Opcode.LOAD, 1, 0, 1,
-        Opcode.RET, 0, 0, 0,
+        Opcode.RET,  0, 0, 0,
         Opcode.LOAD, 2, 0, 2
     ]);
 
@@ -1123,159 +1068,109 @@ test('CALL + RET', () => {
 
 test('MOV', () => {
     const vm = new VM();
+    vm.registers[1] = 1;
+    vm.registers[2] = 2;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 0, 1,
-        Opcode.LOAD, 2, 0, 2,
-        Opcode.MOV,  1, 2, 0,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.MOV,  1, 2, 0]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(2);
     expect(vm.registers[2]).toBe(2);
 });
 
 test('AND', () => {
     const vm = new VM();
+    vm.registers[1] = 1;
+    vm.registers[2] = 3;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 0, 1,
-        Opcode.LOAD, 2, 0, 3,
-        Opcode.AND,  0, 1, 2,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.AND,  0, 1, 2]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(1);
 });
 
 test('OR', () => {
     const vm = new VM();
+    vm.registers[1] = 1;
+    vm.registers[2] = 2;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 0, 1,
-        Opcode.LOAD, 2, 0, 2,
-        Opcode.OR,   1, 2, 0,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.OR,   1, 2, 0]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(3);
 });
 
 test('XOR', () => {
     const vm = new VM();
+    vm.registers[1] = 1;
+    vm.registers[2] = 3;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 0, 1,
-        Opcode.LOAD, 2, 0, 3,
-        Opcode.XOR,  1, 2, 0,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.XOR,  1, 2, 0]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(2);
 });
 
 test('NOT', () => {
     const vm = new VM();
+    vm.registers[1] = 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 0, 1,
-        Opcode.NOT,  1, 0, 0,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.NOT,  1, 0, 0 ]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(-2);
 });
 
 test('BIC', () => {
     const vm = new VM();
+    vm.registers[1] = 15;
+    vm.registers[2] = 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 1, 0, 15,
-        Opcode.LOAD, 2, 0, 1,
-        Opcode.BIC,  1, 2, 0,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.BIC,  1, 2, 0]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(14);
 });
 
 test('SHL $1 $2 $3', () => {
     const vm = new VM();
+    vm.registers[2] = 1;
+    vm.registers[3] = 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 2, 0, 1,
-        Opcode.LOAD, 3, 0, 1,
-        Opcode.SHL,  1, 2, 3,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SHL,  1, 2, 3]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(2);
 });
 
 test('SHL $1 $2 1', () => {
     const vm = new VM();
+    vm.registers[2] = 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 2, 0, 1,
-        Opcode.SHLI,  1, 2, 1,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SHLI,  1, 2, 1]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(2);
 });
 
 test('SHR $1 $2 $3', () => {
     const vm = new VM();
+    vm.registers[2] = 2;
+    vm.registers[3] = 1;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 2, 0, 2,
-        Opcode.LOAD, 3, 0, 1,
-        Opcode.SHR,  1, 2, 3,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SHR,  1, 2, 3]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(1);
 });
 
 test('SHR $1 $2 1', () => {
     const vm = new VM();
+    vm.registers[2] = 2;
 
-    vm.program = Uint8Array.from([
-        ... ID_HEADER,
-        8, 0, 0, 0,
-        Opcode.LOAD, 2, 0, 2,
-        Opcode.SHRI,  1, 2, 1,
-        Opcode.HALT, 0, 0, 0
-    ]);
+    vm.program = Uint8Array.from([Opcode.SHRI, 1, 2, 1]);
 
-    vm.run();
+    vm.exec();
     expect(vm.registers[1]).toBe(1);
 });
 
@@ -1283,11 +1178,10 @@ test('program is part of memory', () => {
     const vm = new VM();
 
     vm.program = Uint8Array.from([
-        /* 0  */ ... ID_HEADER,
-        /* 4  */ 8, 0, 0, 0,
-        /* 8  */ Opcode.SAVE, 0, 15, 2, // this changes the third param of LOAD at address 12 + 3 to value 2
-        /* 12 */ Opcode.LOAD, 2, 0, 0,
-        /* 14 */ Opcode.HALT, 0, 0, 0
+        ... HEADER_SECTION,
+        /* 64 */ Opcode.SAVE, 0, 71, 2, // this changes the third param of LOAD at address 68 + 3 to value 2
+        /* 68 */ Opcode.LOAD, 2, 0, 0,
+        /* 72 */ Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();

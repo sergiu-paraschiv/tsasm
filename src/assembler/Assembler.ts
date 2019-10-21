@@ -16,6 +16,7 @@ export interface IDebugData {
 export class Assembler {
     private parser: Parser;
     private static OP_LENGTH = 4;
+    private stackSize: number = (256 * 256 - 1);
 
     private DIRECTIVES: string[] = [
         '.asciiz'
@@ -417,6 +418,15 @@ export class Assembler {
             header.push(ID_HEADER[i]);
         }
 
+        header.push(this.stackSize >>> 8);
+        header.push(this.stackSize & 255);
+        header.push(0);
+        header.push(0);
+
+        for (let i = 0; i < 52; i++) { // 64 - ID_HEADER - stack size - constants offset
+            header.push(0);
+        }
+
         const constants: number[] = [];
 
         for (let i = 0; i < codeLines.length; i++) {
@@ -462,7 +472,7 @@ export class Assembler {
             constants.push(0);
         }
 
-        header.push(2 * Assembler.OP_LENGTH + constants.length);
+        header.push(64 + constants.length); // 64 = header size, with reserved 60 bytes
         header.push(0);
         header.push(0);
         header.push(0);

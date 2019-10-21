@@ -146,6 +146,16 @@ export class VM {
     }
 
     private consumeHeaderSection(): void {
+        const stackSize = this.next16Bits();
+        // TODO: use stackSize
+        stackSize;
+        this.next16Bits(); // padding
+
+        // skip padding
+        for (let i = 0; i < 52; i++) {
+            this.next8Bits();
+        }
+
         const headerLength = this.next8Bits();
         this.next8Bits(); // padding
         this.next16Bits();
@@ -201,34 +211,32 @@ export class VM {
                 const LOAD_register = this.next8Bits();
                 const LOAD_int16 = this.next16BitsSigned();
 
-                this.registers[LOAD_register] = LOAD_int16;
-
                 this.log(
                     'LOAD',
                     '[', LOAD_register, ':', this.registers[LOAD_register], ']',
                     '[', LOAD_int16, ']'
                 );
+
+                this.registers[LOAD_register] = LOAD_int16;
                 break;
 
             case Opcode.LOADA:
                 const LOADA_register = this.next8Bits();
                 const LOADA_address = this.next16Bits();
 
-                this.registers[LOADA_register] = this.memory.get(LOADA_address);
-
                 this.log(
                     'LOADA',
                     '[', LOADA_register, ':', this.registers[LOADA_register], ']',
                     '[', LOADA_address, ':', this.memory.get(LOADA_address), ']'
                 );
+
+                this.registers[LOADA_register] = this.memory.get(LOADA_address);
                 break;
 
             case Opcode.LOADAR:
                 const LOADAR_register = this.next8Bits();
                 const LOADAR_reg_addr = this.next8Bits();
                 const LOADAR_offset = this.next8Bits();
-
-                this.registers[LOADAR_register] = this.memory.get(this.registers[LOADAR_reg_addr] + LOADAR_offset);
 
                 this.log(
                     'LOADAR',
@@ -237,6 +245,8 @@ export class VM {
                     '+', LOADAR_offset,
                     '=', this.memory.get(this.registers[LOADAR_reg_addr] + LOADAR_offset)
                 );
+
+                this.registers[LOADAR_register] = this.memory.get(this.registers[LOADAR_reg_addr] + LOADAR_offset);
                 break;
 
             case Opcode.ADD:
