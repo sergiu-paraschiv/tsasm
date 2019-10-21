@@ -12,6 +12,10 @@ export class Memory {
         return this._data.length;
     }
 
+    public get data(): Uint8Array {
+        return this._data;
+    }
+
     public get(index: number) {
         if (index < 0 || index >= this._data.length) {
             throw new MemoryError(`Memory index ${index} out of bounds!`);

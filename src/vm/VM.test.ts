@@ -1278,3 +1278,18 @@ test('SHR $1 $2 1', () => {
     vm.run();
     expect(vm.registers[1]).toBe(1);
 });
+
+test('program is part of memory', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        /* 0  */ ... ID_HEADER,
+        /* 4  */ 8, 0, 0, 0,
+        /* 8  */ Opcode.SAVE, 0, 15, 2, // this changes the third param of LOAD at address 12 + 3 to value 2
+        /* 12 */ Opcode.LOAD, 2, 0, 0,
+        /* 14 */ Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[2]).toBe(2);
+});

@@ -8,7 +8,6 @@ export class VM {
     public debug: boolean;
 
     public registers: Int32Array;
-    public program: Uint8Array;
     public flags: {
         remainder: number;
         equal: boolean;
@@ -31,7 +30,6 @@ export class VM {
         this.debug = false;
 
         this.registers = new Int32Array(16);
-        this.program = new Uint8Array();
         this.flags = {
             remainder: 0,
             equal: false,
@@ -62,6 +60,16 @@ export class VM {
 
     private set pc(value: number) {
         this.registers[15] = value;
+    }
+
+    public set program(data: Uint8Array) {
+        for (let i = 0; i < data.length; i++) {
+            this.memory.set(i, data[i]);
+        }
+    }
+
+    public get program(): Uint8Array {
+        return this.memory.data;
     }
 
     public run() {
