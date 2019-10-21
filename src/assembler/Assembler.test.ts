@@ -1047,3 +1047,16 @@ test('DEC $1', () => {
         Opcode.DEC, 1, 0, 0
     ]));
 });
+
+test('MOV $1 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('MOV $1 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.MOV, 1, 2, 0
+    ]));
+});
+

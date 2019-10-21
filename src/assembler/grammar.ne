@@ -55,6 +55,7 @@ instr_1_reg -> "JMP"     {% id %}
 
 instr_2_reg -> "CMP"     {% id %}
              | "CMPN"    {% id %}
+             | "MOV"     {% id %}
 
 instr_1_reg_int -> "CMP"     {% id %}
                  | "CMPN"    {% id %}

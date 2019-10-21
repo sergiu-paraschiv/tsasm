@@ -880,6 +880,21 @@ export class VM {
                 );
                 break;
 
+            case Opcode.MOV:
+                const MOV_register1 = this.next8Bits();
+                const MOV_register2 = this.next8Bits();
+                this.next8Bits(); // padding
+
+                const MOV_old_val = this.registers[MOV_register1];
+                this.registers[MOV_register1] = this.registers[MOV_register2];
+
+                this.log(
+                    'MOV',
+                    '[', MOV_register1, ':', MOV_old_val, ']',
+                    '[', MOV_register2, ':', this.registers[MOV_register2], ']',
+                );
+                break;
+
             default:
                 throw new VMError(`Unrecognized opcode [${opcode}] found! PC: ${this.pc} Terminating!`);
         }

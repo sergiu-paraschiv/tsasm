@@ -321,6 +321,12 @@ export class Assembler {
 
                         break;
 
+                    case Opcode.MOV:
+                        program[codeOffset + 1] = op[1].reg;
+                        program[codeOffset + 2] = op[2].reg;
+                        program[codeOffset + 3] = 0;
+                        break;
+
                     default:
                         // this should never happen
                 }

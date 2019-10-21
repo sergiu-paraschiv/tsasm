@@ -1120,3 +1120,20 @@ test('CALL + RET', () => {
     expect(vm.registers[1]).toBe(1);
     expect(vm.registers[2]).toBe(0);
 });
+
+test('MOV', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 0, 1,
+        Opcode.LOAD, 2, 0, 2,
+        Opcode.MOV,  1, 2, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.registers[1]).toBe(2);
+    expect(vm.registers[2]).toBe(2);
+});

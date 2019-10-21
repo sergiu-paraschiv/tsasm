@@ -86,6 +86,8 @@ var grammar = {
     {"name": "instr_2_reg", "symbols": ["instr_2_reg$string$1"], "postprocess": id},
     {"name": "instr_2_reg$string$2", "symbols": [{"literal":"C"}, {"literal":"M"}, {"literal":"P"}, {"literal":"N"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "instr_2_reg", "symbols": ["instr_2_reg$string$2"], "postprocess": id},
+    {"name": "instr_2_reg$string$3", "symbols": [{"literal":"M"}, {"literal":"O"}, {"literal":"V"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "instr_2_reg", "symbols": ["instr_2_reg$string$3"], "postprocess": id},
     {"name": "instr_1_reg_int$string$1", "symbols": [{"literal":"C"}, {"literal":"M"}, {"literal":"P"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "instr_1_reg_int", "symbols": ["instr_1_reg_int$string$1"], "postprocess": id},
     {"name": "instr_1_reg_int$string$2", "symbols": [{"literal":"C"}, {"literal":"M"}, {"literal":"P"}, {"literal":"N"}], "postprocess": function joiner(d) {return d.join('');}},

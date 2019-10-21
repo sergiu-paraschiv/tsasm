@@ -44,6 +44,7 @@ export enum Opcode {
     POPM,
     CALL,
     RET,
+    MOV,
     HEAD     = 199,
     ILGL
 }
@@ -82,6 +83,7 @@ export const OpcodeMAP: {
     'POP' : Opcode.POP,
     'CALL': Opcode.CALL,
     'RET' : Opcode.RET,
+    'MOV' : Opcode.MOV
 };
 
 export enum Directive {

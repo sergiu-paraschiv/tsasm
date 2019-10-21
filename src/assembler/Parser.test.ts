@@ -899,3 +899,14 @@ test('DEC $1', () => {
         ['DEC', { reg: 1 }]
     ]);
 });
+
+test('MOV $1 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('MOV $1 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['MOV', { reg: 1 }, { reg: 2 }]
+    ]);
+});
