@@ -16,6 +16,8 @@ instr -> instr_no_op                             {% d => [ d[0] ] %}
        | instr_1_reg    __ reg                   {% d => [ d[0], d[2] ] %}
        | instr_1_label  __ label                 {% d => [ d[0], d[2] ] %}
        | instr_2_reg    __ reg  __ reg           {% d => [ d[0], d[2], d[4] ] %}
+       | instr_1_reg_int __ reg __ int16         {% d => [ d[0], d[2], d[4] ] %}
+       | instr_2_reg_int __ reg __ int8 __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
        | instr_3_reg    __ reg  __ reg  __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
        | instr_reg_list __ regs                  {% d => [ d[0], d[2] ] %}
        | "LOAD"         __ reg  __ int16         {% d => [ d[0], d[2], d[4] ] %}
@@ -48,13 +50,24 @@ instr_1_reg -> "JMP"     {% id %}
              | "JLTE"    {% id %}
              | "PUSH"    {% id %}
              | "POP"     {% id %}
+             | "INC"     {% id %}
+             | "DEC"     {% id %}
 
 instr_2_reg -> "CMP"     {% id %}
+             | "CMPN"    {% id %}
+
+instr_1_reg_int -> "CMP"     {% id %}
+                 | "CMPN"    {% id %}
 
 instr_3_reg -> "ADD"     {% id %}
              | "SUB"     {% id %}
              | "DIV"     {% id %}
              | "MUL"     {% id %}
+
+instr_2_reg_int -> "ADD"     {% id %}
+                 | "SUB"     {% id %}
+                 | "DIV"     {% id %}
+                 | "MUL"     {% id %}
 
 instr_reg_list -> "PUSH" {% id %}
                 | "POP"  {% id %}

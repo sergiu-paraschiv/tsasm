@@ -191,14 +191,14 @@ export class VM {
 
             case Opcode.LOAD:
                 const LOAD_register = this.next8Bits();
-                const LOAD_double = this.next16Bits();
+                const LOAD_int16 = this.next16BitsSigned();
 
-                this.registers[LOAD_register] = LOAD_double;
+                this.registers[LOAD_register] = LOAD_int16;
 
                 this.log(
                     'LOAD',
                     '[', LOAD_register, ':', this.registers[LOAD_register], ']',
-                    '[', LOAD_double, ']'
+                    '[', LOAD_int16, ']'
                 );
                 break;
 
@@ -248,6 +248,36 @@ export class VM {
                 );
                 break;
 
+            case Opcode.ADDI:
+                const ADDI_register1 = this.next8Bits();
+                const ADDI_int8 = this.next8BitsSigned();
+                const ADDI_register3 = this.next8Bits();
+
+                const ADDI_pre = this.registers[ADDI_register3];
+                this.registers[ADDI_register3] = this.registers[ADDI_register1] + ADDI_int8;
+
+                this.log(
+                    'ADDI',
+                    '[', ADDI_register1, ':', this.registers[ADDI_register1], ']',
+                    '[', ADDI_int8, ']',
+                    '[', ADDI_register3, ':', ADDI_pre, ']',
+                    'res:', this.registers[ADDI_register3]
+                );
+                break;
+
+            case Opcode.INC:
+                const INC_register = this.next8Bits();
+                this.next16Bits(); // padding
+
+                this.registers[INC_register] = this.registers[INC_register] + 1;
+
+                this.log(
+                    'INC',
+                    '[', INC_register, ':', this.registers[INC_register], ']',
+                    'res:', this.registers[INC_register]
+                );
+                break;
+
             case Opcode.SUB:
                 const SUB_register1 = this.next8Bits();
                 const SUB_register2 = this.next8Bits();
@@ -262,6 +292,36 @@ export class VM {
                     '[', SUB_register2, ':', this.registers[SUB_register2], ']',
                     '[', SUB_register3, ':', SUB_pre, ']',
                     'res:', this.registers[SUB_register3]
+                );
+                break;
+
+            case Opcode.SUBI:
+                const SUBI_register1 = this.next8Bits();
+                const SUBI_int8 = this.next8BitsSigned();
+                const SUBI_register3 = this.next8Bits();
+
+                const SUBI_pre = this.registers[SUBI_register3];
+                this.registers[SUBI_register3] = this.registers[SUBI_register1] - SUBI_int8;
+
+                this.log(
+                    'SUBI',
+                    '[', SUBI_register1, ':', this.registers[SUBI_register1], ']',
+                    '[', SUBI_int8, ']',
+                    '[', SUBI_register3, ':', SUBI_pre, ']',
+                    'res:', this.registers[SUBI_register3]
+                );
+                break;
+
+            case Opcode.DEC:
+                const DEC_register = this.next8Bits();
+                this.next16Bits(); // padding
+
+                this.registers[DEC_register] = this.registers[DEC_register] - 1;
+
+                this.log(
+                    'DEC',
+                    '[', DEC_register, ':', this.registers[DEC_register], ']',
+                    'res:', this.registers[DEC_register]
                 );
                 break;
 
@@ -282,6 +342,23 @@ export class VM {
                 );
                 break;
 
+            case Opcode.MULI:
+                const MULI_register1 = this.next8Bits();
+                const MULI_int8 = this.next8BitsSigned();
+                const MULI_register3 = this.next8Bits();
+
+                const MULI_pre = this.registers[MULI_register3];
+                this.registers[MULI_register3] = this.registers[MULI_register1] * MULI_int8;
+
+                this.log(
+                    'MULI',
+                    '[', MULI_register1, ':', this.registers[MULI_register1], ']',
+                    '[', MULI_int8, ']',
+                    '[', MULI_register3, ':', MULI_pre, ']',
+                    'res:', this.registers[MULI_register3]
+                );
+                break;
+
             case Opcode.DIV:
                 const DIV_register1 = this.next8Bits();
                 const DIV_register2 = this.next8Bits();
@@ -297,6 +374,25 @@ export class VM {
                     '[', DIV_register2, ':', this.registers[DIV_register2], ']',
                     '[', DIV_register3, ':', DIV_pre, ']',
                     'res:', this.registers[DIV_register3],
+                    'remainder:', this.flags.remainder
+                );
+                break;
+
+            case Opcode.DIVI:
+                const DIVI_register1 = this.next8Bits();
+                const DIVI_int8 = this.next8BitsSigned();
+                const DIVI_register3 = this.next8Bits();
+
+                const DIVI_pre = this.registers[DIVI_register3];
+                this.registers[DIVI_register3] = Math.trunc(this.registers[DIVI_register1] / DIVI_int8);
+                this.flags.remainder = this.registers[DIVI_register1] % DIVI_int8;
+
+                this.log(
+                    'DIVI',
+                    '[', DIVI_register1, ':', this.registers[DIVI_register1], ']',
+                    '[', DIVI_int8, ']',
+                    '[', DIVI_register3, ':', DIVI_pre, ']',
+                    'res:', this.registers[DIVI_register3],
                     'remainder:', this.flags.remainder
                 );
                 break;
@@ -345,14 +441,66 @@ export class VM {
                 const CMP_register2 = this.next8Bits();
                 this.next8Bits(); // padding
 
-                const res = this.registers[CMP_register1] - this.registers[CMP_register2];
-                this.flags.equal = res === 0;
-                this.flags.negative = res < 0;
+                const CMP_res = this.registers[CMP_register1] - this.registers[CMP_register2];
+                this.flags.equal = CMP_res === 0;
+                this.flags.negative = CMP_res < 0;
 
                 this.log(
                     'CMP',
                     '[', CMP_register1, ':', this.registers[CMP_register1], ']',
                     '[', CMP_register2, ':', this.registers[CMP_register2], ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative
+                );
+                break;
+
+            case Opcode.CMPI:
+                const CMPI_register1 = this.next8Bits();
+                const CMPI_int16 = this.next16BitsSigned();
+
+                const CMPI_res = this.registers[CMPI_register1] - CMPI_int16;
+                this.flags.equal = CMPI_res === 0;
+                this.flags.negative = CMPI_res < 0;
+
+                this.log(
+                    'CMPI',
+                    '[', CMPI_register1, ':', this.registers[CMPI_register1], ']',
+                    '[', CMPI_int16, ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative
+                );
+                break;
+
+            case Opcode.CMPN:
+                const CMPN_register1 = this.next8Bits();
+                const CMPN_register2 = this.next8Bits();
+                this.next8Bits(); // padding
+
+                const CMPN_res = this.registers[CMPN_register1] + this.registers[CMPN_register2];
+                this.flags.equal = CMPN_res === 0;
+                this.flags.negative = CMPN_res < 0;
+
+                this.log(
+                    'CMPN',
+                    '[', CMPN_register1, ':', this.registers[CMPN_register1], ']',
+                    '[', CMPN_register2, ':', this.registers[CMPN_register2], ']',
+                    'equal:', this.flags.equal,
+                    'negative:', this.flags.negative
+                );
+                break;
+
+            case Opcode.CMPNI:
+                const CMPNI_register1 = this.next8Bits();
+                const CMPNI_int16 = this.next16BitsSigned();
+
+                const CMPNI_res = this.registers[CMPNI_register1] + CMPNI_int16;
+                this.flags.equal = CMPNI_res === 0;
+                this.flags.negative = CMPNI_res < 0;
+
+                this.log(
+                    'CMPNI',
+                    '[', CMPNI_register1, ':', this.registers[CMPNI_register1], ']',
+                    '[', CMPNI_int16, ']',
                     'equal:', this.flags.equal,
                     'negative:', this.flags.negative
                 );
@@ -598,29 +746,29 @@ export class VM {
 
             case Opcode.SAVE:
                 const SAVE_address = this.next16Bits();
-                const SAVE_int = this.next8Bits();
+                const SAVE_int8 = this.next8BitsSigned();
 
-                this.memory.set(SAVE_address, SAVE_int);
+                this.memory.set(SAVE_address, SAVE_int8);
 
                 this.log(
                     'SAVE',
                     '[', SAVE_address, ']',
-                    '[', SAVE_int, ']',
+                    '[', SAVE_int8, ']',
                 );
                 break;
 
             case Opcode.SAVETOR:
                 const SAVETOR_reg = this.next8Bits();
                 const SAVETOR_offset = this.next8Bits();
-                const SAVETOR_int = this.next8Bits();
+                const SAVETOR_int8 = this.next8BitsSigned();
 
-                this.memory.set(this.registers[SAVETOR_reg] + SAVETOR_offset, SAVETOR_int);
+                this.memory.set(this.registers[SAVETOR_reg] + SAVETOR_offset, SAVETOR_int8);
 
                 this.log(
                     'SAVETOR',
                     '[', SAVETOR_reg, ':', this.registers[SAVETOR_reg], ']',
                     '+', SAVETOR_offset,
-                    '[', SAVETOR_int, ']',
+                    '[', SAVETOR_int8, ']',
                 );
                 break;
 
@@ -760,6 +908,14 @@ export class VM {
         return result;
     }
 
+    private next8BitsSigned(): number {
+        return this.uintToInt(this.next8Bits(), 8);
+    }
+
+    private next16BitsSigned(): number {
+        return this.uintToInt(this.next16Bits(), 16);
+    }
+
     private next24Bits(): number {
         const result = ((this.program[this.pc]) << 16) | ((this.program[this.pc + 1]) << 8) | this.program[this.pc + 2];
         this.pc += 3;
@@ -781,6 +937,13 @@ export class VM {
         reglist.reverse();
 
         return reglist;
+    }
+
+    private uintToInt(uint: number, bits: number): number {
+        bits = +bits || 32;
+        uint <<= 32 - bits;
+        uint >>= 32 - bits;
+        return uint;
     }
 
     private log(... args: any[]) {

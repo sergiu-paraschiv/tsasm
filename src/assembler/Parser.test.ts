@@ -137,6 +137,39 @@ test('CMP $1 $2', () => {
     ]);
 });
 
+test('CMPN $1 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('CMPN $1 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['CMPN', { reg: 1 }, { reg: 2 }]
+    ]);
+});
+
+test('CMP $1 100', () => {
+    const parser = new Parser();
+
+    parser.feed('CMP $1 100\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['CMP', { reg: 1 }, 100]
+    ]);
+});
+
+test('CMPN $1 100', () => {
+    const parser = new Parser();
+
+    parser.feed('CMPN $1 100\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['CMPN', { reg: 1 }, 100]
+    ]);
+});
+
 test('JEQ $1', () => {
     const parser = new Parser();
 
@@ -799,4 +832,70 @@ test('LOAD $1 32768', () => {
     expect(() => {
         parser.feed('LOAD $1 32768\n');
     }).toThrowError(ParserError);
+});
+
+test('ADD $1 127 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('ADD $1 127 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['ADD', { reg: 1 }, 127, { reg: 2 }]
+    ]);
+});
+
+test('SUB $1 127 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('SUB $1 127 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['SUB', { reg: 1 }, 127, { reg: 2 }]
+    ]);
+});
+
+test('MUL $1 127 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('MUL $1 127 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['MUL', { reg: 1 }, 127, { reg: 2 }]
+    ]);
+});
+
+test('DIV $1 127 $2', () => {
+    const parser = new Parser();
+
+    parser.feed('DIV $1 127 $2\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['DIV', { reg: 1 }, 127, { reg: 2 }]
+    ]);
+});
+
+test('INC $1', () => {
+    const parser = new Parser();
+
+    parser.feed('INC $1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['INC', { reg: 1 }]
+    ]);
+});
+
+test('DEC $1', () => {
+    const parser = new Parser();
+
+    parser.feed('DEC $1\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['DEC', { reg: 1 }]
+    ]);
 });

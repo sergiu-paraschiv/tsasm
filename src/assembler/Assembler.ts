@@ -1,5 +1,5 @@
 import { Parser } from './Parser';
-import { Directive, ID_HEADER, Opcode } from '../Instruction';
+import { Directive, ID_HEADER, Opcode, OpcodeMAP } from '../Instruction';
 import { AssemblerError } from './AssemblerError';
 
 
@@ -16,33 +16,6 @@ export interface IDebugData {
 export class Assembler {
     private parser: Parser;
     private static OP_LENGTH = 4;
-
-    private OPCODE_MAP: {
-        [key: string]: Opcode
-    } = {
-        'HALT': Opcode.HALT,
-        'LOAD': Opcode.LOAD,
-        'ADD':  Opcode.ADD,
-        'SUB':  Opcode.SUB,
-        'MUL':  Opcode.MUL,
-        'DIV':  Opcode.DIV,
-        'JMP':  Opcode.JMP,
-        'JMPF': Opcode.JMPF,
-        'JMPB': Opcode.JMPB,
-        'CMP':  Opcode.CMP,
-        'JEQ':  Opcode.JEQ,
-        'JNEQ': Opcode.JNEQ,
-        'JGT':  Opcode.JGT,
-        'JLT':  Opcode.JLT,
-        'JGTE': Opcode.JGTE,
-        'JLTE': Opcode.JLTE,
-        'PUTS': Opcode.PUTS,
-        'SAVE': Opcode.SAVE,
-        'PUSH': Opcode.PUSH,
-        'POP' : Opcode.POP,
-        'CALL': Opcode.CALL,
-        'RET' : Opcode.RET
-    };
 
     private DIRECTIVES: string[] = [
         '.asciiz'
@@ -96,7 +69,7 @@ export class Assembler {
                 op = op.op;
             }
 
-            if (this.OPCODE_MAP.hasOwnProperty(op[0])) {
+            if (OpcodeMAP.hasOwnProperty(op[0])) {
                 if (label) {
                     labels[label] = labelsPhaseCodeOffset;
                 }
@@ -132,8 +105,8 @@ export class Assembler {
                 }
             }
 
-            if (this.OPCODE_MAP.hasOwnProperty(op[0])) {
-                const opcode = this.OPCODE_MAP[op[0]];
+            if (OpcodeMAP.hasOwnProperty(op[0])) {
+                const opcode = OpcodeMAP[op[0]];
                 program[codeOffset] = opcode;
 
                 switch (opcode) {
@@ -148,8 +121,38 @@ export class Assembler {
                     case Opcode.DIV:
                     case Opcode.MUL:
                         program[codeOffset + 1] = op[1].reg;
-                        program[codeOffset + 2] = op[2].reg;
+                        if (op[2].reg) {
+                            program[codeOffset + 2] = op[2].reg;
+                        }
+                        else {
+                            program[codeOffset + 2] = op[2];
+
+                            switch (program[codeOffset]) {
+                                case Opcode.ADD:
+                                    program[codeOffset] = Opcode.ADDI;
+                                    break;
+                                case Opcode.SUB:
+                                    program[codeOffset] = Opcode.SUBI;
+                                    break;
+                                case Opcode.DIV:
+                                    program[codeOffset] = Opcode.DIVI;
+                                    break;
+                                case Opcode.MUL:
+                                    program[codeOffset] = Opcode.MULI;
+                                    break;
+                                default:
+                                    // should never get here
+                                    throw new AssemblerError('Unexpected Opcode!');
+                            }
+                        }
                         program[codeOffset + 3] = op[3].reg;
+                        break;
+
+                    case Opcode.INC:
+                    case Opcode.DEC:
+                        program[codeOffset + 1] = op[1].reg;
+                        program[codeOffset + 2] = 0;
+                        program[codeOffset + 3] = 0;
                         break;
 
                     case Opcode.JMP:
@@ -191,7 +194,7 @@ export class Assembler {
                                     break;
                                 default:
                                     // should never get here
-                                    throw new AssemblerError(`JMPF and JMPB don't support label param!`);
+                                    throw new AssemblerError('JMPF and JMPB don\'t support label param!');
                             }
                         }
                         else {
@@ -204,9 +207,26 @@ export class Assembler {
                         break;
 
                     case Opcode.CMP:
+                    case Opcode.CMPN:
+                    case Opcode.CMPI:
+                    case Opcode.CMPNI:
                         program[codeOffset + 1] = op[1].reg;
-                        program[codeOffset + 2] = op[2].reg;
-                        program[codeOffset + 3] = 0;
+
+                        if (op[2].reg) {
+                            program[codeOffset + 2] = op[2].reg;
+                            program[codeOffset + 3] = 0;
+                        }
+                        else {
+                            if (opcode === Opcode.CMP) {
+                                program[codeOffset] = Opcode.CMPI;
+                            }
+                            else if (opcode === Opcode.CMPN) {
+                                program[codeOffset] = Opcode.CMPNI;
+                            }
+                            program[codeOffset + 2] = op[2] >>> 8;
+                            program[codeOffset + 3] = op[2] & 255;
+                        }
+
                         break;
 
                     case Opcode.LOAD:

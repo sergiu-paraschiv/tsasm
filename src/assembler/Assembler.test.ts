@@ -150,6 +150,42 @@ test('CMP', () => {
     ]));
 });
 
+test('CMPN', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('CMPN $1 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.CMPN, 1, 2, 0
+    ]));
+});
+
+test('CMPI', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('CMP $1 100');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.CMPI, 1, 0, 100
+    ]));
+});
+
+test('CMPNI', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('CMPN $1 -100');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.CMPNI, 1, 255, 156
+    ]));
+});
+
 test('JEQ', () => {
     const assembler = new Assembler();
 
@@ -604,6 +640,18 @@ test('SAVE [65535] 10', () => {
     ]));
 });
 
+test('SAVE [65535] -10', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SAVE [65535] -10');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 255, 255, 246
+    ]));
+});
+
 test('SAVE [255, 127] 10', () => {
     const assembler = new Assembler();
 
@@ -925,5 +973,77 @@ test('RET', () => {
         ... ID_HEADER,
         8, 0, 0, 0,
         Opcode.RET, 0, 0, 0
+    ]));
+});
+
+test('ADD $1 127 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('ADD $1 127 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.ADDI, 1, 127, 2
+    ]));
+});
+
+test('SUB $1 127 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('SUB $1 127 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SUBI, 1, 127, 2
+    ]));
+});
+
+test('MUL $1 127 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('MUL $1 127 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.MULI, 1, 127, 2
+    ]));
+});
+
+test('DIV $1 127 $2', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('DIV $1 127 $2');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.DIVI, 1, 127, 2
+    ]));
+});
+
+test('INC $1', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('INC $1');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.INC, 1, 0, 0
+    ]));
+});
+
+test('DEC $1', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('DEC $1');
+
+    expect(data.program).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.DEC, 1, 0, 0
     ]));
 });

@@ -59,6 +59,30 @@ test('ADD with negative numbers 2', () => {
     expect(vm.registers[2]).toBe(-510);
 });
 
+test('ADD with immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.ADDI, 0, 10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(510);
+});
+
+test('ADD with negative immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.ADDI, 0, -10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(490);
+});
+
+test('INC', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.INC, 0, 0, 0]);
+    vm.exec();
+    expect(vm.registers[0]).toBe(501);
+});
+
 test('SUB', () => {
     const vm = new VM();
     vm.registers[0] = 500;
@@ -66,6 +90,22 @@ test('SUB', () => {
     vm.program = Uint8Array.from([Opcode.SUB, 0, 1, 2]);
     vm.exec();
     expect(vm.registers[2]).toBe(490);
+});
+
+test('SUB with immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.SUBI, 0, 10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(490);
+});
+
+test('SUB with negative immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.SUBI, 0, -10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(510);
 });
 
 test('SUB with negative numbers 1', () => {
@@ -86,6 +126,14 @@ test('SUB with negative numbers 2', () => {
     expect(vm.registers[2]).toBe(-510);
 });
 
+test('DEC', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.DEC, 0, 0, 0]);
+    vm.exec();
+    expect(vm.registers[0]).toBe(499);
+});
+
 test('MUL', () => {
     const vm = new VM();
     vm.registers[0] = 500;
@@ -94,6 +142,23 @@ test('MUL', () => {
     vm.exec();
     expect(vm.registers[2]).toBe(5000);
 });
+
+test('MUL with immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.MULI, 0, 10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(5000);
+});
+
+test('MUL with negative immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 500;
+    vm.program = Uint8Array.from([Opcode.MULI, 0, -10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(-5000);
+});
+
 
 test('MUL with negative numbers 1', () => {
     const vm = new VM();
@@ -120,6 +185,24 @@ test('DIV (no remainder)', () => {
     vm.program = Uint8Array.from([Opcode.DIV, 0, 1, 2]);
     vm.exec();
     expect(vm.registers[2]).toBe(50);
+});
+
+test('DIV with immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 505;
+    vm.program = Uint8Array.from([Opcode.DIVI, 0, 10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(50);
+    expect(vm.flags.remainder).toBe(5);
+});
+
+test('DIV with negative immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 505;
+    vm.program = Uint8Array.from([Opcode.DIVI, 0, -10, 2]);
+    vm.exec();
+    expect(vm.registers[2]).toBe(-50);
+    expect(vm.flags.remainder).toBe(5);
 });
 
 test('DIV with remainder', () => {
@@ -160,7 +243,6 @@ test('DIV with negative number and remainder', () => {
     expect(vm.flags.remainder).toBe(5);
 });
 
-
 test('JMP', () => {
     const vm = new VM();
     vm.registers[5] = 9;
@@ -200,6 +282,20 @@ test('CMP equal flag', () => {
     expect(vm.flags.equal).toBe(false);
 });
 
+test('CMP immediate', () => {
+    const vm = new VM();
+    vm.registers[0] = 2;
+
+    vm.program = Uint8Array.from([Opcode.CMPI, 0, 0, 2]);
+    vm.exec();
+    expect(vm.flags.equal).toBe(true);
+
+    vm.registers[0] = 3;
+
+    vm.exec();
+    expect(vm.flags.equal).toBe(false);
+});
+
 test('CMP negative numbers', () => {
     const vm = new VM();
     vm.registers[0] = -2;
@@ -232,6 +328,74 @@ test('CMP negative flag', () => {
     expect(vm.flags.equal).toBe(false);
 
     vm.registers[1] = 3;
+
+    vm.exec();
+    expect(vm.flags.negative).toBe(false);
+    expect(vm.flags.equal).toBe(true);
+});
+
+test('CMPN equal flag', () => {
+    const vm = new VM();
+    vm.registers[0] = 2;
+    vm.registers[1] = -2;
+
+    vm.program = Uint8Array.from([Opcode.CMPN, 0, 1, 0]);
+    vm.exec();
+    expect(vm.flags.equal).toBe(true);
+
+    vm.registers[1] = 3;
+
+    vm.exec();
+    expect(vm.flags.equal).toBe(false);
+});
+
+test('CMPN immediate', () => {
+    const vm = new VM();
+
+    vm.registers[0] = 100;
+
+    vm.program = Uint8Array.from([Opcode.CMPNI, 0, 255, 156]);
+    vm.exec();
+    expect(vm.flags.equal).toBe(true);
+
+    vm.registers[0] = -100;
+
+    vm.exec();
+    expect(vm.flags.equal).toBe(false);
+});
+
+test('CMPN negative numbers', () => {
+    const vm = new VM();
+    vm.registers[0] = -2;
+    vm.registers[1] = -2;
+
+    vm.program = Uint8Array.from([Opcode.CMPN, 0, 1, 0]);
+    vm.exec();
+    expect(vm.flags.equal).toBe(false);
+
+    vm.registers[1] = 2;
+
+    vm.exec();
+    expect(vm.flags.equal).toBe(true);
+});
+
+test('CMPN negative flag', () => {
+    const vm = new VM();
+    vm.registers[0] = 3;
+    vm.registers[1] = -2;
+
+    vm.program = Uint8Array.from([Opcode.CMPN, 0, 1, 0]);
+    vm.exec();
+    expect(vm.flags.negative).toBe(false);
+    expect(vm.flags.equal).toBe(false);
+
+    vm.registers[1] = -4;
+
+    vm.exec();
+    expect(vm.flags.negative).toBe(true);
+    expect(vm.flags.equal).toBe(false);
+
+    vm.registers[1] = -3;
 
     vm.exec();
     expect(vm.flags.negative).toBe(false);
@@ -504,6 +668,19 @@ test('SAVE [0] 10', () => {
     expect(vm.memory.get(0)).toBe(10);
 });
 
+test('SAVE [0] -100', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.SAVE, 0, 0, 156,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(0)).toBe(156);
+});
+
 test('SAVE [65534] 10', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
@@ -588,32 +765,46 @@ test('LOAD $1 [$2, 255]', () => {
     expect(vm.registers[1]).toBe(10);
 });
 
-test('SAVE [$1] 10', () => {
+test('SAVE [$1] 10, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 1, 255, 254,
+        Opcode.LOAD, 1, 127, 255,
         Opcode.SAVETOR, 1, 0, 10,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.memory.get(65534)).toBe(10);
+    expect(vm.memory.get(32767)).toBe(10);
 });
 
-test('SAVE [$1, 255] 10', () => {
+test('SAVE [$1] -10, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 1, 255, 254,
+        Opcode.LOAD, 1, 127, 255,
+        Opcode.SAVETOR, 1, 0, 246,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.memory.get(32767)).toBe(246);
+});
+
+test('SAVE [$1, 255] 100, $1 = 32767', () => {
+    const vm = new VM();
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        8, 0, 0, 0,
+        Opcode.LOAD, 1, 127, 255,
         Opcode.SAVETOR, 1, 255, 10,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.memory.get(65534 + 255)).toBe(10);
+    expect(vm.memory.get(32767 + 255)).toBe(10);
 });
 
 test('SAVE [0] $2', () => {
@@ -630,7 +821,7 @@ test('SAVE [0] $2', () => {
     expect(vm.memory.get(0)).toBe(10);
 });
 
-test('SAVE [0] $2 with overflowing int', () => {
+test('SAVE [0] $2, $2 = 32767, overflowing int', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... ID_HEADER,
@@ -641,38 +832,38 @@ test('SAVE [0] $2 with overflowing int', () => {
     ]);
 
     vm.run();
-    expect(vm.registers[2]).toBe(65534);
+    expect(vm.registers[2]).toBe(-2);
     expect(vm.memory.get(0)).toBe(254);
 });
 
-test('SAVE [$1] $2', () => {
+test('SAVE [$1] $2, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 1, 255, 254,
+        Opcode.LOAD, 1, 127, 255,
         Opcode.LOAD, 2, 0, 10,
         Opcode.SAVERTOR, 1, 0, 2,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.memory.get(65534)).toBe(10);
+    expect(vm.memory.get(32767)).toBe(10);
 });
 
-test('SAVE [$1, 255] $2', () => {
+test('SAVE [$1, 255] $2, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 1, 255, 254,
+        Opcode.LOAD, 1, 127, 255,
         Opcode.LOAD, 2, 0, 10,
         Opcode.SAVERTOR, 1, 255, 2,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.memory.get(65534 + 255)).toBe(10);
+    expect(vm.memory.get(32767 + 255)).toBe(10);
 });
 
 test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () => {
@@ -681,7 +872,10 @@ test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () =
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD,    1, 255, 255, // put (256 * 256 - 1) in $1, our memory pointer
+        Opcode.LOAD,    1, 127, 255, // put (256 * 128 - 1) in $1, our memory pointer
+        Opcode.LOAD,    13, 127, 255, // put (256 * 128 - 1) in $13
+        Opcode.ADD,     1, 13, 1,    // add $13 to $1
+        Opcode.ADDI,    1, 1, 1,     // add 1 to $1
         Opcode.LOAD,    2, 1,   0,   // put 256 in $2, our multiplier
         Opcode.MUL,     1, 2,   1,   // multiply $1 by $2
         Opcode.SAVETOR, 1, 0,   10,  // save 10 in memory at address pointed by $1
@@ -701,7 +895,10 @@ test('SAVE [$1] 10, where $1 points to (256 * 256 - 1) * 256 + 255 = 256 * 256 *
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD,    1, 255, 255, // put (256 * 256 - 1) in $1, our memory pointer
+        Opcode.LOAD,    1, 127, 255, // put (256 * 128 - 1) in $1, our memory pointer
+        Opcode.LOAD,    13, 127, 255, // put (256 * 128 - 1) in $13
+        Opcode.ADD,     1, 13, 1,    // add $13 to $1
+        Opcode.ADDI,    1, 1, 1,     // add 1 to $1
         Opcode.LOAD,    2, 1,   0,   // put 256 in $2, our multiplier
         Opcode.LOAD,    3, 0,   255, // put 255 in $3, our out of bounds memory offset
         Opcode.MUL,     1, 2,   1,   // multiply $1 by $2
@@ -800,13 +997,13 @@ test('PUSH $1', () => {
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 1, 255, 255,
+        Opcode.LOAD, 1, 127, 255,
         Opcode.PUSH, 1, 0, 0,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
 test('POP $2', () => {
@@ -814,7 +1011,7 @@ test('POP $2', () => {
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 1, 255, 255,
+        Opcode.LOAD, 1, 127, 255,
         Opcode.PUSH, 1, 0, 0,
         Opcode.POP,  2, 0, 0,
         Opcode.HALT, 0, 0, 0
@@ -822,7 +1019,7 @@ test('POP $2', () => {
 
     vm.run();
     expect(vm.stack.pointer).toBeUndefined();
-    expect(vm.registers[2]).toBe(256 * 256 - 1);
+    expect(vm.registers[2]).toBe(256 * 128 - 1);
 });
 
 test('PUSH { $0 }', () => {
@@ -831,13 +1028,13 @@ test('PUSH { $0 }', () => {
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 0, 255, 255,
+        Opcode.LOAD, 0, 127, 255,
         Opcode.PUSHM,0, 0, 1,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
 test('PUSH { $1 }', () => {
@@ -846,13 +1043,13 @@ test('PUSH { $1 }', () => {
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 1, 255, 255,
+        Opcode.LOAD, 1, 127, 255,
         Opcode.PUSHM, 0, 0, 17,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
 test('PUSH { $2 }', () => {
@@ -861,13 +1058,13 @@ test('PUSH { $2 }', () => {
     vm.program = Uint8Array.from([
         ... ID_HEADER,
         8, 0, 0, 0,
-        Opcode.LOAD, 2, 255, 255,
+        Opcode.LOAD, 2, 127, 255,
         Opcode.PUSHM, 0, 0, 33,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.stack.pointer!.value).toBe(256 * 256 - 1);
+    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
 });
 
 test('PUSH { $1 $2 } -> POP { $2 $1 }', () => {
