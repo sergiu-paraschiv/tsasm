@@ -1,8 +1,10 @@
 main -> segment_w:*               {% id %}
 
 
-segment_w -> _ __n                {% d => null %}
-           | _ segment _ __n      {% d => d[1] %}
+segment_w -> _ __n                     {% d => null %}
+           | _ comment __n             {% d => null %}
+           | _ segment _ __n           {% d => d[1] %}
+           | _ segment _ comment __n   {% d => d[1] %}
 
 segment -> instr                  {% id %}
          | label ":" __ instr     {% d => { return { label: d[0].label, op: d[3] } } %}
@@ -163,6 +165,8 @@ base_signed_int -> base_int         {% id %}
 base_int  -> [0-9]                  {% d => parseInt(d, 10) %}
            | base_int [0-9]         {% d => parseInt(d[0] + d[1], 10) %}
 
+
+comment   -> ";" .:*                {% d => null %}
 
 _     -> null | _ [" "\t]           {% d => null %}
 __    -> [" "\t] | __ [" "\t]       {% d => null %}

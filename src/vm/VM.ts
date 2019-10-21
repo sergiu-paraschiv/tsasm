@@ -1149,7 +1149,7 @@ export class VM {
         this.memory.set(this.sp - 3, (value >>> 24) & 255);
         this.memory.set(this.sp - 2, (value >>> 16) & 255);
         this.memory.set(this.sp - 1, (value >>> 8) & 255);
-        this.memory.set(this.sp - 0, value & 255);
+        this.memory.set(this.sp, value & 255);
 
         this.sp -= 4;
     }

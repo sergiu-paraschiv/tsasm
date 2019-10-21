@@ -1056,3 +1056,46 @@ test('.stack 3', () => {
     }).toThrowError(ParserError);
 });
 
+test('comments (HALT)', () => {
+    const parser = new Parser();
+
+    parser.feed('HALT ;some comment here\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        [ 'HALT' ]
+    ]);
+});
+
+test('JMP $1 (JMP)', () => {
+    const parser = new Parser();
+
+    parser.feed('JMP $1 ;some comment here\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        [ 'JMP', { reg: 1 } ]
+    ]);
+});
+
+test('comment whitespace', () => {
+    const parser = new Parser();
+
+    parser.feed('JMP $1    ;  some comment here   \n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        [ 'JMP', { reg: 1 } ]
+    ]);
+});
+
+test('comment on empty line', () => {
+    const parser = new Parser();
+
+    parser.feed('    ;  some comment here   \n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        null
+    ]);
+});
