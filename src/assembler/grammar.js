@@ -18,6 +18,13 @@ var grammar = {
     {"name": "dir$ebnf$1", "symbols": []},
     {"name": "dir$ebnf$1", "symbols": ["dir$ebnf$1", /./], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "dir", "symbols": ["dir$string$1", "__", {"literal":"'"}, "dir$ebnf$1", {"literal":"'"}], "postprocess": d => [ d[0], d[3].join("") ]},
+    {"name": "dir$string$2", "symbols": [{"literal":"."}, {"literal":"s"}, {"literal":"t"}, {"literal":"a"}, {"literal":"c"}, {"literal":"k"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "dir", "symbols": ["dir$string$2", "__", "uint16"], "postprocess":  (d, l, reject) => {
+            if (d[2] % 4) {
+                return reject;
+            }
+            return [ d[0], d[2] ];
+        } },
     {"name": "instr", "symbols": ["instr_no_op"], "postprocess": d => [ d[0] ]},
     {"name": "instr", "symbols": ["instr_reg", "__", "reg"], "postprocess": d => [ d[0], d[2] ]},
     {"name": "instr", "symbols": ["instr_label", "__", "label"], "postprocess": d => [ d[0], d[2] ]},
@@ -203,7 +210,7 @@ var grammar = {
             }
             return d[0];
         } },
-    {"name": "uint", "symbols": ["base_int"], "postprocess": id},
+    {"name": "uint", "symbols": ["sum"], "postprocess": id},
     {"name": "int", "symbols": ["sum"], "postprocess": id},
     {"name": "sum$string$1", "symbols": [{"literal":" "}, {"literal":"+"}, {"literal":" "}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "sum", "symbols": ["sum", "sum$string$1", "product"], "postprocess": d => d[0] + d[2]},

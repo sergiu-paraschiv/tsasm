@@ -10,7 +10,12 @@ segment -> instr                  {% id %}
          | label ":" __ dir       {% d => { return { label: d[0].label, op: d[3] } } %}
 
 dir -> ".asciiz" __ "'" .:* "'"   {% d => [ d[0], d[3].join("") ] %}
-
+     | ".stack" __ uint16         {% (d, l, reject) => {
+                                      if (d[2] % 4) {
+                                          return reject;
+                                      }
+                                      return [ d[0], d[2] ];
+                                  } %}
 
 instr -> instr_no_op                                       {% d => [ d[0] ] %}
        | instr_reg              __ reg                     {% d => [ d[0], d[2] ] %}
@@ -137,7 +142,7 @@ uint16  -> uint                     {% (d, l, reject) => {
                                         return d[0];
                                     } %}
 
-uint    -> base_int                 {% id %}
+uint    -> sum                      {% id %}
 int     -> sum                      {% id %}
 
 sum     -> sum " + " product        {% d => d[0] + d[2] %}

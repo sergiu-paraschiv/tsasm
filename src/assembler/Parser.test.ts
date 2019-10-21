@@ -1009,3 +1009,50 @@ test('SHR $1 $2 1', () => {
         ['SHR', { reg: 1 }, { reg: 2 }, 1]
     ]);
 });
+
+test('.stack 12', () => {
+    const parser = new Parser();
+
+    parser.feed('.stack 12\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['.stack', 12]
+    ]);
+});
+
+test('.stack 65536', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('.stack 65536\n');
+    }).toThrowError(ParserError);
+});
+
+test('.stack -1', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('.stack -1\n');
+    }).toThrowError(ParserError);
+});
+
+test('.stack 256 * 256 - 4', () => {
+    const parser = new Parser();
+
+    parser.feed('.stack 256 * 256 - 4\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['.stack', 256 * 256 - 4]
+    ]);
+});
+
+test('.stack 3', () => {
+    const parser = new Parser();
+
+    expect(() => {
+        parser.feed('.stack 3\n');
+    }).toThrowError(ParserError);
+});
+

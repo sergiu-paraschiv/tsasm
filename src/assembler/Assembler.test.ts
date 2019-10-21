@@ -29,7 +29,7 @@ test('header', () => {
 
     expect(data.program.slice(0, 68)).toEqual(new Uint8Array([
         ... ID_HEADER,
-        255, 255, 0, 0,
+        255, 253, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0,
         0, 0, 0, 0,
@@ -1048,10 +1048,25 @@ test('stack size is part of program header', () => {
 
     expect(data.program.slice(0, 8)).toEqual(new Uint8Array([
         ... ID_HEADER,
-        255, 255, 0, 0
+        255, 253, 0, 0
     ]));
 
     expect(data.program.slice(64)).toEqual(new Uint8Array([
         Opcode.SHRI, 1, 2, 1
     ]));
 });
+
+test('stack size can be adjusted', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run(`
+        .stack 10
+        SHR $1 $2 1
+    `);
+
+    expect(data.program.slice(0, 8)).toEqual(new Uint8Array([
+        ... ID_HEADER,
+        0, 10, 0, 0
+    ]));
+});
+

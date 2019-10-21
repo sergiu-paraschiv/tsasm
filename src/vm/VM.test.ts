@@ -2,6 +2,7 @@ import { VM } from './VM';
 import { VMError } from './VMError';
 import { ID_HEADER, Opcode } from '../Instruction';
 import { MemoryError } from './MemoryError';
+import { StackError } from './StackError';
 
 
 const HEADER_SECTION_NO_BODY_OFFSET = [
@@ -967,7 +968,13 @@ test('PUSH $1', () => {
     vm.program = Uint8Array.from([Opcode.PUSH, 1, 0, 0]);
 
     vm.exec();
-    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
+
+    expect(vm.registers[13]).toBe(VM.MEMORY_SIZE - 7);
+
+    expect(vm.memory.get(vm.registers[13] + 1)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 2)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 3)).toBe(127);
+    expect(vm.memory.get(vm.registers[13] + 4)).toBe(255);
 });
 
 test('POP $2', () => {
@@ -981,7 +988,7 @@ test('POP $2', () => {
     ]);
 
     vm.run();
-    expect(vm.stack.pointer).toBeUndefined();
+    expect(vm.registers[13]).toBe(VM.MEMORY_SIZE - 3);
     expect(vm.registers[2]).toBe(256 * 128 - 1);
 });
 
@@ -992,7 +999,13 @@ test('PUSH { $0 }', () => {
     vm.program = Uint8Array.from([Opcode.PUSHM,0, 0, 1]);
 
     vm.exec();
-    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
+
+    expect(vm.registers[13]).toBe(VM.MEMORY_SIZE - 7);
+
+    expect(vm.memory.get(vm.registers[13] + 1)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 2)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 3)).toBe(127);
+    expect(vm.memory.get(vm.registers[13] + 4)).toBe(255);
 });
 
 test('PUSH { $1 }', () => {
@@ -1002,7 +1015,13 @@ test('PUSH { $1 }', () => {
     vm.program = Uint8Array.from([ Opcode.PUSHM, 0, 0, 17]);
 
     vm.exec();
-    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
+
+    expect(vm.registers[13]).toBe(VM.MEMORY_SIZE - 7);
+
+    expect(vm.memory.get(vm.registers[13] + 1)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 2)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 3)).toBe(127);
+    expect(vm.memory.get(vm.registers[13] + 4)).toBe(255);
 });
 
 test('PUSH { $2 }', () => {
@@ -1012,7 +1031,13 @@ test('PUSH { $2 }', () => {
     vm.program = Uint8Array.from([Opcode.PUSHM, 0, 0, 33]);
 
     vm.exec();
-    expect(vm.stack.pointer!.value).toBe(256 * 128 - 1);
+
+    expect(vm.registers[13]).toBe(VM.MEMORY_SIZE - 7);
+
+    expect(vm.memory.get(vm.registers[13] + 1)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 2)).toBe(0);
+    expect(vm.memory.get(vm.registers[13] + 3)).toBe(127);
+    expect(vm.memory.get(vm.registers[13] + 4)).toBe(255);
 });
 
 test('PUSH { $1 $2 } -> POP { $2 $1 }', () => {
@@ -1030,6 +1055,7 @@ test('PUSH { $1 $2 } -> POP { $2 $1 }', () => {
     vm.run();
     expect(vm.registers[1]).toBe(1);
     expect(vm.registers[2]).toBe(2);
+    expect(vm.registers[13]).toBe(VM.MEMORY_SIZE - 3);
 });
 
 test('PUSH { $1 $2 } -> POP { $1 $2 }', () => {
@@ -1047,6 +1073,7 @@ test('PUSH { $1 $2 } -> POP { $1 $2 }', () => {
     vm.run();
     expect(vm.registers[1]).toBe(2);
     expect(vm.registers[2]).toBe(1);
+    expect(vm.registers[13]).toBe(VM.MEMORY_SIZE - 3);
 });
 
 test('CALL + RET', () => {
@@ -1186,4 +1213,94 @@ test('program is part of memory', () => {
 
     vm.run();
     expect(vm.registers[2]).toBe(2);
+});
+
+test('stack size can be adjusted', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        0, 10, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        64, 0, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    vm.run();
+    expect(vm.stackSize).toBe(10);
+});
+
+test('stack throws on overflow', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        0, 12, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        64, 0, 0, 0,
+        Opcode.LOAD, 1, 127, 255,
+        Opcode.PUSH, 1, 0, 0,
+        Opcode.PUSH, 1, 0, 0,
+        Opcode.PUSH, 1, 0, 0,
+        Opcode.PUSH, 1, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    expect(() => {
+        vm.run();
+    }).toThrowError(new StackError('Stack overflow! Max size is 12 bytes.'));
+});
+
+test('stack throws on underflow', () => {
+    const vm = new VM();
+
+    vm.program = Uint8Array.from([
+        ... ID_HEADER,
+        0, 12, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        64, 0, 0, 0,
+        Opcode.LOAD, 1, 127, 255,
+        Opcode.POP, 1, 0, 0,
+        Opcode.HALT, 0, 0, 0
+    ]);
+
+    expect(() => {
+        vm.run();
+    }).toThrowError(new StackError('Stack underflow!'));
 });

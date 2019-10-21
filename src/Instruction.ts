@@ -103,7 +103,8 @@ export const OpcodeMAP: {
 };
 
 export enum Directive {
-    ASCIIZ = '.asciiz'
+    ASCIIZ = '.asciiz',
+    STACK  = '.stack'
 }
 
 export const ID_HEADER = Uint8Array.from([Opcode.HEAD, 65, 83, 77]);

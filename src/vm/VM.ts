@@ -1,10 +1,12 @@
 import { ID_HEADER, Opcode } from '../Instruction';
 import { VMError } from './VMError';
 import { Memory } from './Memory';
-import { Stack } from './Stack';
+import { StackError } from './StackError';
 
 
 export class VM {
+    public static MEMORY_SIZE = 256 * 256 * 256 - 1;
+
     public debug: boolean;
 
     public registers: Int32Array;
@@ -16,8 +18,8 @@ export class VM {
     public totalIterations: number;
     public outputBuffer: Uint8Array;
     public memory: Memory;
-    public stack: Stack;
 
+    private _stackSize: number;
     private breakpoints: number[];
     private ignoreNextBreakpoint: boolean;
     private paused: boolean;
@@ -37,13 +39,23 @@ export class VM {
         };
         this.totalIterations = 0;
         this.outputBuffer = new Uint8Array();
-        this.memory = new Memory(256 * 256 * 256 - 1);
-        this.stack = new Stack(256 * 256);
+        this.memory = new Memory(VM.MEMORY_SIZE);
+        this._stackSize = 256 * 256 - 3;
+
+        this.sp = VM.MEMORY_SIZE - 3;
 
         this.breakpoints = [];
         this.ignoreNextBreakpoint = false;
         this.paused = false;
         this.forceStop = false;
+    }
+
+    private get sp(): number {
+        return this.registers[13];
+    }
+
+    private set sp(value: number) {
+        this.registers[13] = value;
     }
 
     private get lr(): number {
@@ -60,6 +72,10 @@ export class VM {
 
     private set pc(value: number) {
         this.registers[15] = value;
+    }
+
+    public get stackSize(): number {
+        return this._stackSize;
     }
 
     public set program(data: Uint8Array) {
@@ -146,9 +162,8 @@ export class VM {
     }
 
     private consumeHeaderSection(): void {
-        const stackSize = this.next16Bits();
-        // TODO: use stackSize
-        stackSize;
+        this._stackSize = this.next16Bits();
+
         this.next16Bits(); // padding
 
         // skip padding
@@ -823,7 +838,7 @@ export class VM {
                 const PUSH_reg = this.next8Bits();
                 this.next16Bits(); // padding
 
-                this.stack.push(this.registers[PUSH_reg]);
+                this.stackPush(this.registers[PUSH_reg]);
 
                 this.log(
                     'PUSH',
@@ -835,7 +850,7 @@ export class VM {
                 const POP_reg = this.next8Bits();
                 this.next16Bits(); // padding
 
-                this.registers[POP_reg] = this.stack.pop();
+                this.registers[POP_reg] = this.stackPop();
 
                 this.log(
                     'POP',
@@ -847,7 +862,7 @@ export class VM {
                 const PUSHM_regs = this.next24BitsAsReglist();
 
                 for (let i = 0; i < PUSHM_regs.length; i++) {
-                    this.stack.push(this.registers[PUSHM_regs[i]]);
+                    this.stackPush(this.registers[PUSHM_regs[i]]);
                 }
 
                 this.log(
@@ -861,7 +876,7 @@ export class VM {
                 const POPM_regs = this.next24BitsAsReglist();
 
                 for (let i = 0; i < POPM_regs.length; i++) {
-                    this.registers[POPM_regs[i]] = this.stack.pop();
+                    this.registers[POPM_regs[i]] = this.stackPop();
                 }
 
                 this.log(
@@ -1124,6 +1139,32 @@ export class VM {
         uint <<= 32 - bits;
         uint >>= 32 - bits;
         return uint;
+    }
+
+    private stackPush(value: number): void {
+        if (this.sp <= VM.MEMORY_SIZE - this._stackSize) {
+            throw new StackError(`Stack overflow! Max size is ${this._stackSize} bytes.`);
+        }
+
+        this.memory.set(this.sp - 3, (value >>> 24) & 255);
+        this.memory.set(this.sp - 2, (value >>> 16) & 255);
+        this.memory.set(this.sp - 1, (value >>> 8) & 255);
+        this.memory.set(this.sp - 0, value & 255);
+
+        this.sp -= 4;
+    }
+
+    private stackPop(): number {
+        if (this.sp >= VM.MEMORY_SIZE - 3) {
+            throw new StackError('Stack underflow!');
+        }
+
+        this.sp += 4;
+
+        return ((this.program[this.sp - 3]) << 24)
+                | ((this.program[this.sp - 2]) << 16)
+                | ((this.program[this.sp - 1]) << 8)
+                | this.program[this.sp];
     }
 
     private log(... args: any[]) {

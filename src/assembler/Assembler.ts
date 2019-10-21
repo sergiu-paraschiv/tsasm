@@ -16,11 +16,9 @@ export interface IDebugData {
 export class Assembler {
     private parser: Parser;
     private static OP_LENGTH = 4;
-    private stackSize: number = (256 * 256 - 1);
+    private stackSize: number = 256 * 256 - 3;
 
-    private DIRECTIVES: string[] = [
-        '.asciiz'
-    ];
+    private DIRECTIVES: string[] = Object.values(Directive);
 
     constructor() {
         this.parser = new Parser();
@@ -418,15 +416,6 @@ export class Assembler {
             header.push(ID_HEADER[i]);
         }
 
-        header.push(this.stackSize >>> 8);
-        header.push(this.stackSize & 255);
-        header.push(0);
-        header.push(0);
-
-        for (let i = 0; i < 52; i++) { // 64 - ID_HEADER - stack size - constants offset
-            header.push(0);
-        }
-
         const constants: number[] = [];
 
         for (let i = 0; i < codeLines.length; i++) {
@@ -461,6 +450,11 @@ export class Assembler {
 
                 consumedLines += 1;
             }
+            else if (op[0] === Directive.STACK) {
+                this.stackSize = op[1];
+
+                consumedLines += 1;
+            }
         }
 
         let padding = 0;
@@ -470,6 +464,15 @@ export class Assembler {
 
         for (let i = 0; i < padding; i++) {
             constants.push(0);
+        }
+
+        header.push(this.stackSize >>> 8);
+        header.push(this.stackSize & 255);
+        header.push(0);
+        header.push(0);
+
+        for (let i = 0; i < 52; i++) { // 64 - ID_HEADER - stack size - constants offset
+            header.push(0);
         }
 
         header.push(64 + constants.length); // 64 = header size, with reserved 60 bytes
