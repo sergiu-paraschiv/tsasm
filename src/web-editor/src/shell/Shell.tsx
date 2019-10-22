@@ -1,214 +1,210 @@
 import * as React from 'react';
-import ASMEditor from '../editor/ASMEditor';
+import { Play, Square, SkipForward } from 'react-feather';
 import { VM } from '../../../vm/VM';
 import { Assembler, IDebugData } from '../../../assembler/Assembler';
 import { ParserError } from '../../../assembler/ParserError';
+import ASMEditor from '../editor/ASMEditor';
+import { MemoryView } from './MemoryView';
+import { StackView } from './StackView';
+import { INIT_PROGRAM } from './INIT_PROGRAM';
 
-
-const INITIAL_VALUE = `
-.asciiz '----------'
-DONE: .asciiz 'Done.'
-
-        LOAD $1 50 ; a comment
-        LOAD $2 10 ; another comment
-        LOAD $10 0
-        LOAD $11 0
-        LOAD $12 1
-
-;
-; this comment 
-; is on multiple lines :)
-; and contains START SUB $1 ADD CMP
-;
-        
-START:  SUB  $1 $1 $2
-        ADD  $11 $11 $12
-        CMP  $1 $10
-        
-        PUSH $1
-        
-        JEQ  END
-        JMP  START
-        
-END:    PUTS DONE
-        HALT
-.asciiz '----------'
-`;
 
 interface IState {
     code: string
     breakpoints: number[]
     running: boolean
-    crtPc: number | undefined
     iterations: number | undefined
     validBreakpoints: number[]
     error?: ParserError;
-    outputBuffer: Uint8Array;
     memoryViewSpan: [ number, number ];
+    debugData: IDebugData | undefined;
 }
 
 export default class Shell extends React.PureComponent<{}, IState> {
-    private crtVM: VM | undefined;
-    private debugData: IDebugData | undefined;
+    private readonly vm: VM;
+    private static readonly BYTES_PER_MEMORY_VIEW_LINE = 16;
 
     constructor(props: {}) {
         super(props);
 
+        this.vm = new VM();
+
+        this.vm.afterInstructionRun((iterations: number) => {
+            this.setState({
+                iterations
+            });
+        });
+
+        this.vm.onStop(() => {
+            this.setState({
+                running: false
+            });
+        });
+
+        const debugData = this.runAssembler(INIT_PROGRAM, true);
+
         this.state = {
-            code: '',
+            code: INIT_PROGRAM,
             breakpoints: [],
             running: false,
-            crtPc: undefined,
             iterations: undefined,
             validBreakpoints: [],
             error: undefined,
-            outputBuffer: new Uint8Array(),
-            memoryViewSpan: [64, 100]
+            memoryViewSpan: [64, 100],
+            debugData
         };
     }
 
     render() {
-        const { running, crtPc, breakpoints, validBreakpoints, error, outputBuffer, memoryViewSpan } = this.state;
+        return (
+            <div className="container mt-3">
+                {this.renderRunControls()}
 
-        let ob = '';
-        outputBuffer.forEach(charCode => ob += String.fromCharCode(charCode));
+                <div className="row">
+                    <div className="col-8">
+                        {this.renderEditor()}
 
-        let memory = '';
-        if (this.crtVM) {
-            let o = 0;
-            for (let i = memoryViewSpan[0]; i <= memoryViewSpan[1]; i++) {
-                if (!(o % 4)) {
-                    memory += '\n' + i + ': ';
-                }
-                memory += this.crtVM.memory.get(i) + ' ';
+                        <div className="mt-3">
+                            {this.renderMemoryView()}
+                        </div>
+                    </div>
 
-                o += 1;
-            }
-        }
+                    <div className="col-4">
+                        {this.renderDebugInfo()}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-        let stack = '';
-        if (this.crtVM) {
-            for (let i = VM.MEMORY_SIZE - 3; i > this.crtVM.registers[13]; i -= 4) {
-                stack += this.crtVM.memory.get(i - 3).toString() + ' ';
-                stack += this.crtVM.memory.get(i - 2).toString() + ' ';
-                stack += this.crtVM.memory.get(i - 1).toString() + ' ';
-                stack += this.crtVM.memory.get(i - 0).toString() + '\n';
-            }
-        }
+    private renderEditor() {
+        const { running, breakpoints, validBreakpoints } = this.state;
 
         return (
-            <div>
-                <ASMEditor
-                    initialValue={INITIAL_VALUE}
-                    onChange={this.handleCodeChange}
-                    breakpoints={breakpoints}
-                    onBreakpointsChage={this.handleBreakpointsChange}
-                    validBreakpoints={validBreakpoints}
-                    highlightedLine={crtPc && this.debugData ? this.debugData.lineMap.indexOf(crtPc) : undefined}
-                    readOnly={running}
-                    error={error && this.debugData ? {
-                        message: error.message,
-                        line: (error.line || 1) - 1,
-                        col: error.col || 0
-                    } : undefined}
-                />
+            <ASMEditor
+                initialValue={INIT_PROGRAM}
+                onChange={this.handleCodeChange}
+                breakpoints={breakpoints}
+                onBreakpointsChage={this.handleBreakpointsChange}
+                validBreakpoints={validBreakpoints}
+                highlightedLine={this.getCurrentHighlightedLine()}
+                readOnly={running}
+                error={this.getCurrentErrorLine()}
+            />
+        );
+    }
 
-                <button onClick={this.handleClickRun} disabled={running}>Run</button>
-                <button onClick={this.handleClickContinue} disabled={!running || (this.crtVM && !this.crtVM.isPaused())}>Continue</button>
-                <button onClick={this.handleClickStop} disabled={!running}>Stop</button>
+    private renderRunControls() {
+        const { running } = this.state;
 
-                {(this.debugData && this.crtVM) ? (
-                    <div className="shell_watch">
-                        <div>
-                            <strong>PC:</strong> {crtPc}
-                        </div>
-                        <div><strong>Flags</strong></div>
-                        <div>remainder: {this.crtVM!.flags.remainder}</div>
-                        <div>equal: {this.crtVM!.flags.equal ? 'true' : 'false'}</div>
-                        <div>negative: {this.crtVM!.flags.negative ? 'true' : 'false'}</div>
-                        <div><strong>Registers</strong></div>
-                        {this.debugData.usedRegisters.map(reg => (
-                            <div key={reg}>${reg}: {this.crtVM!.registers[reg]}</div>
-                        ))}
-                        <div><strong>Labels</strong></div>
-                        {Object.keys(this.debugData.labels).map(name => (
-                            <div key={name}>{name}: {this.debugData!.labels[name]}</div>
-                        ))}
+        return (
+            <div className="row justify-content-start mb-3">
+                <div className="col-auto">
+                    <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={this.handleClickRun}
+                        disabled={running}
+                    >
+                        Run
+                        <Play color="#28a745" size={14} />
+                    </button>
+                </div>
 
-                        <div><strong>Output</strong></div>
-                        <textarea
-                            readOnly={true}
-                            value={ob}
-                        />
 
-                        <div><strong>Memory</strong></div>
-                        <div>
-                            <input type="number" value={memoryViewSpan[0]}
-                                   onChange={e => this.setState({ memoryViewSpan: [parseInt(e.target.value, 10), memoryViewSpan[1]] })} />
-                            -
-                            <input type="number" value={memoryViewSpan[1]}
-                                   onChange={e => this.setState({ memoryViewSpan: [memoryViewSpan[0], parseInt(e.target.value, 10)] })} />
-                        </div>
-                        <textarea
-                            style={{ width: '400px', height: '300px' }}
-                            readOnly={true}
-                            value={memory}
-                        />
-
-                        <div><strong>Stack</strong></div>
-                        <textarea
-                            style={{ width: '400px', height: '300px' }}
-                            readOnly={true}
-                            value={stack}
-                        />
+                {running ? (
+                    <div className="col-auto">
+                        <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={this.handleClickContinue}
+                            disabled={!this.vm.isPaused()}
+                        >
+                            Continue
+                            <SkipForward color="#ffc107" size={14} />
+                        </button>
                     </div>
                 ) : null}
 
+                {running ? (
+                    <div className="col-auto">
+                        <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={this.handleClickStop}
+                        >
+                            Stop
+                            <Square color="#dc3545" size={14} />
+                        </button>
+                    </div>
+                ) : null}
+            </div>
+        );
+    }
+
+    private renderMemoryView() {
+        return (
+            <MemoryView
+                getRow={this.getMemoryViewRow}
+                rowCount={(this.vm.memory.size / Shell.BYTES_PER_MEMORY_VIEW_LINE) + 1}
+                reverseAddress={index => Math.floor(index / Shell.BYTES_PER_MEMORY_VIEW_LINE)}
+            />
+        );
+    }
+
+    private renderDebugInfo() {
+        const { debugData } = this.state;
+
+        if (!debugData) {
+            return null;
+        }
+
+        const ob = this.getOutputBuffer();
+
+        return (
+            <div className="">
+                <div>
+                    <strong>SP:</strong> {this.vm.registers[13]}
+                    &nbsp;
+                    <strong>LR:</strong> {this.vm.registers[14]}
+                    &nbsp;
+                    <strong>PC:</strong> {this.vm.registers[15]}
+                </div>
+
+                <div><strong>Flags</strong></div>
+                <div>remainder: {this.vm.flags.remainder}</div>
+                <div>equal: {this.vm.flags.equal ? 'true' : 'false'}</div>
+                <div>negative: {this.vm.flags.negative ? 'true' : 'false'}</div>
+                
+                <div><strong>Registers</strong></div>
+                {debugData.usedRegisters.map(reg => (
+                    <div key={reg}>${reg}: {this.vm.registers[reg]}</div>
+                ))}
+                <div><strong>Labels</strong></div>
+                {Object.keys(debugData.labels).map(name => (
+                    <div key={name}>{name}: {debugData.labels[name]}</div>
+                ))}
+
+                <div><strong>Output</strong></div>
+                <textarea
+                    readOnly={true}
+                    value={ob}
+                />
+
+                <StackView
+                    getRow={this.getStackViewRow}
+                    rowCount={(this.vm.stackSize / 4) + 1}
+                    reverseAddress={index => Math.floor((VM.MEMORY_SIZE - 3 - index) / 4)}
+                />
             </div>
         );
     }
 
     private handleCodeChange = (code: string) => {
-        const assembler = new Assembler();
-        const validBreakpoints: number[] = [];
-
-        try {
-            const data = assembler.run(code, true);
-            this.debugData = data.debugData;
-            let breakpoints = this.state.breakpoints;
-
-            if (this.debugData) {
-                for (let i = 0; i < this.debugData.lineMap.length; i++) {
-                    if (this.debugData.lineMap[i] != null) {
-                        validBreakpoints.push(i);
-                    }
-                }
-            }
-
-            breakpoints = breakpoints.filter(line => validBreakpoints.indexOf(line) > -1);
-
-            this.setState({
-                code,
-                validBreakpoints,
-                breakpoints,
-                error: undefined
-            });
-        }
-        catch (error) {
-            if (error instanceof ParserError) {
-                // we'll pass the error to state
-            }
-            else {
-                throw error;
-            }
-
-            this.setState({
-                code,
-                validBreakpoints: [],
-                breakpoints: [],
-                error
-            });
-        }
+        this.setState({
+            code,
+            error: undefined
+        }, () => {
+            this.runAssembler(code);
+            this.updateBreakpoints();
+        });
     };
 
     private handleBreakpointsChange = (breakpoints: number[]) => {
@@ -221,63 +217,173 @@ export default class Shell extends React.PureComponent<{}, IState> {
         this.setState({
             running: true
         }, () => {
-            const assembler = new Assembler();
+            this.vm.reset();
+            this.vm.debug = true;
 
-            this.crtVM = new VM();
-            this.crtVM.debug = true;
-
-            const data = assembler.run(this.state.code, true);
-            this.crtVM.program = data.program;
-            this.debugData = data.debugData;
+            this.runAssembler(this.state.code);
 
             this.setVMBreakpoints();
 
-            this.crtVM.onPcChange((crtPc: number, iterations: number) => {
-                this.setState({
-                    crtPc,
-                    iterations
-                });
-            });
-
-            this.crtVM.onOutputBufferChange(() => {
-                if (!this.crtVM) {
-                    return;
-                }
-
-                this.setState({
-                    outputBuffer: this.crtVM.outputBuffer
-                });
-            });
-
-            this.crtVM.onStop(() => {
-                this.setState({
-                    running: false,
-                    crtPc: undefined
-                }, () => {
-                    this.crtVM = undefined;
-                });
-            });
-
-            this.crtVM.run();
+            this.vm.run();
         });
     };
 
     private handleClickContinue = () => {
-        if (this.crtVM) {
-            this.crtVM.continue();
+        if (this.state.running) {
+            this.vm.continue();
         }
     };
 
     private handleClickStop = () => {
-        if (this.crtVM) {
-            this.crtVM.stop();
+        if (this.state.running) {
+            this.vm.stop();
         }
     };
 
-    private setVMBreakpoints() {
-        if (this.crtVM && this.debugData) {
-            const pcPoints = this.state.breakpoints.map(line => this.debugData!.lineMap[line]);
-            this.crtVM.setBreakpoints(pcPoints.filter(point => point != null) as number[]);
+    private runAssembler(code: string, returnDebugData = false) {
+        try {
+            const assembler = new Assembler();
+            const data = assembler.run(code, true);
+            this.vm.program = data.program;
+
+            if (!returnDebugData) {
+                this.setState({
+                    debugData: data.debugData
+                });
+            }
+            else {
+                return data.debugData;
+            }
         }
+        catch (error) {
+            if (error instanceof ParserError) {
+                // we'll pass the error to state
+            }
+            else {
+                throw error;
+            }
+
+            this.setState({
+                validBreakpoints: [],
+                breakpoints: [],
+                error
+            });
+        }
+
+        return undefined;
+    }
+
+    private updateBreakpoints() {
+        const { debugData } = this.state;
+        const validBreakpoints: number[] = [];
+        let breakpoints = this.state.breakpoints;
+
+        if (debugData) {
+            for (let i = 0; i < debugData.lineMap.length; i++) {
+                if (debugData.lineMap[i] != null) {
+                    validBreakpoints.push(i);
+                }
+            }
+        }
+
+        breakpoints = breakpoints.filter(line => validBreakpoints.indexOf(line) > -1);
+
+        this.setState({
+            validBreakpoints,
+            breakpoints
+        });
+    }
+
+    private setVMBreakpoints() {
+        const { debugData } = this.state;
+
+        if (!debugData) {
+            return;
+        }
+
+        const { breakpoints } = this.state;
+        const pcPoints = breakpoints.map(line => debugData.lineMap[line]);
+        this.vm.setBreakpoints(pcPoints.filter(point => point != null) as number[]);
+    }
+
+    private getCurrentHighlightedLine(): number | undefined {
+        const { debugData } = this.state;
+
+        if (!debugData) {
+            return undefined;
+        }
+
+        const pc = this.vm.registers[15];
+        return debugData.lineMap.indexOf(pc) || undefined;
+    }
+
+    private getCurrentErrorLine(): {
+        message: string,
+        line: number,
+        col: number
+    } | undefined
+    {
+        const { error, debugData } = this.state;
+
+        if (!debugData || !error) {
+            return undefined;
+        }
+
+        return {
+            message: error.message,
+            line: (error.line || 1) - 1,
+            col: error.col || 0
+        };
+    }
+
+    private getOutputBuffer(): string {
+        let ob = '';
+
+        this.vm.outputBuffer.forEach(charCode => ob += String.fromCharCode(charCode));
+
+        return ob;
+    }
+
+    private getMemoryViewRow = (row: number): React.ReactNode => {
+        const line: React.ReactNode[] = [
+            <span key="id">{row * Shell.BYTES_PER_MEMORY_VIEW_LINE}</span>
+        ];
+        const index = row *  Shell.BYTES_PER_MEMORY_VIEW_LINE;
+        let endIndex = index + Shell.BYTES_PER_MEMORY_VIEW_LINE;
+
+        if (endIndex > this.vm.memory.size) {
+            endIndex = this.vm.memory.size;
+        }
+
+        for (let i = index; i < endIndex; i++) {
+            line.push(<span key={i}>{this.vm.memory.get(i)}</span>);
+        }
+
+        return line;
+    };
+
+    private getStackViewRow = (row: number): React.ReactNode => {
+        /*
+        0   ... 0
+        row ... x + VM.MEMORY_SIZE - 3
+        END ... - this.vm.stackSize
+        */
+
+        const index = ((row * -this.vm.stackSize) / (this.vm.stackSize / 4)) + VM.MEMORY_SIZE - 3;
+        let endIndex = index - 4;
+
+        if (endIndex < VM.MEMORY_SIZE - 3 - this.vm.stackSize) {
+            endIndex = VM.MEMORY_SIZE - 3 - this.vm.stackSize;
+        }
+
+        const line: React.ReactNode[] = [
+            <span key="id">{index}</span>
+        ];
+
+        for (let i = index; i > endIndex; i--) {
+            line.push(<span key={i}>{this.vm.memory.get(i)}</span>);
+        }
+
+        return line;
     }
 }

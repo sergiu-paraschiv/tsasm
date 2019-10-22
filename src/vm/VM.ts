@@ -25,12 +25,14 @@ export class VM {
     private paused: boolean;
     private stopCallback: undefined | (() => void);
     private forceStop: boolean;
-    private pcChangeCallback: undefined | ((pc: number, iterations: number) => void);
-    private outputBufferChange: undefined | (() => void);
+    private afterInstructionRunCallback: undefined | ((iterations: number) => void);
 
     constructor() {
         this.debug = false;
+        this.reset();
+    }
 
+    public reset() {
         this.registers = new Int32Array(16);
         this.flags = {
             remainder: 0,
@@ -101,10 +103,8 @@ export class VM {
 
     public exec() {
         this.pc = 0;
-        if (this.pcChangeCallback) {
-            this.pcChangeCallback(this.pc, this.totalIterations);
-        }
         this.executeInstruction();
+        this.callAfterInstructionRunCallback();
     }
 
     public setBreakpoints(breakpoints: number[]) {
@@ -124,12 +124,8 @@ export class VM {
         return this.paused;
     }
 
-    public onPcChange(callback: (pc: number, iterations: number) => void) {
-        this.pcChangeCallback = callback;
-    }
-
-    public onOutputBufferChange(callback: () => void) {
-        this.outputBufferChange = callback;
+    public afterInstructionRun(callback: (iterations: number) => void) {
+        this.afterInstructionRunCallback = callback;
     }
 
     private runMainLoop() {
@@ -181,10 +177,6 @@ export class VM {
     private executeInstruction(): boolean {
         if (this.pc >= this.program.length) {
             throw new VMError(`PC out of bounds: ${this.pc}, while program length is ${this.program.length}. Maybe no HALT was encountered? Terminating!`);
-        }
-
-        if (this.pcChangeCallback) {
-            this.pcChangeCallback(this.pc, this.totalIterations);
         }
 
         if (this.forceStop) {
@@ -767,10 +759,6 @@ export class VM {
                 str.push(0);
                 this.outputBuffer = Uint8Array.from(str);
 
-                if (this.outputBufferChange) {
-                    this.outputBufferChange();
-                }
-
                 this.log(
                     'PUTS',
                     '[', PUTS_label_addr, ':', str, ']'
@@ -1081,6 +1069,8 @@ export class VM {
 
         this.totalIterations += 1;
 
+        this.callAfterInstructionRunCallback();
+
         return false;
     }
 
@@ -1165,6 +1155,12 @@ export class VM {
                 | ((this.program[this.sp - 2]) << 16)
                 | ((this.program[this.sp - 1]) << 8)
                 | this.program[this.sp];
+    }
+
+    private callAfterInstructionRunCallback() {
+        if (this.afterInstructionRunCallback) {
+            this.afterInstructionRunCallback(this.totalIterations);
+        }
     }
 
     private log(... args: any[]) {
