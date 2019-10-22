@@ -172,7 +172,7 @@ export default class Shell extends React.PureComponent<{}, IState> {
                 <div>remainder: {this.vm.flags.remainder}</div>
                 <div>equal: {this.vm.flags.equal ? 'true' : 'false'}</div>
                 <div>negative: {this.vm.flags.negative ? 'true' : 'false'}</div>
-                
+
                 <div><strong>Registers</strong></div>
                 {debugData.usedRegisters.map(reg => (
                     <div key={reg}>${reg}: {this.vm.registers[reg]}</div>

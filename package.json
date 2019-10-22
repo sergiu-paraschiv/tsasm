@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "jest",
-    "grammar": "nearleyc ./src/assembler/grammar.ne -o ./src/assembler/grammar.js"
+    "grammar-asm": "nearleyc ./src/assembler/grammar.ne -o ./src/assembler/grammar.js",
+    "grammar-low": "nearleyc ./src/low/grammar.ne -o ./src/low/grammar.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,5 +17,8 @@
     "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.4"
+  },
+  "dependencies": {
+    "moo": "^0.5.1"
   }
 }
