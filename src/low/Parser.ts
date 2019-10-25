@@ -20,7 +20,7 @@ export class Parser {
             const errorInfo = rx.exec(error.message);
 
             if (errorInfo && errorInfo.length === 3) {
-                throw new ParserError('Invalid syntax', parseInt(errorInfo[1], 10), parseInt(errorInfo[2], 10));
+                throw new ParserError(error.message, parseInt(errorInfo[1], 10), parseInt(errorInfo[2], 10));
             }
 
             throw new ParserError(error.message);

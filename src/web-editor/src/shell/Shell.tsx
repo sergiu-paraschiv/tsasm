@@ -203,7 +203,6 @@ export default class Shell extends React.PureComponent<{}, IState> {
             error: undefined
         }, () => {
             this.runAssembler(code);
-            this.updateBreakpoints();
         });
     };
 
@@ -249,6 +248,8 @@ export default class Shell extends React.PureComponent<{}, IState> {
             if (!returnDebugData) {
                 this.setState({
                     debugData: data.debugData
+                }, () => {
+                    this.updateBreakpoints();
                 });
             }
             else {
@@ -279,6 +280,8 @@ export default class Shell extends React.PureComponent<{}, IState> {
         let breakpoints = this.state.breakpoints;
 
         if (debugData) {
+            console.log('x', debugData.lineMap);
+
             for (let i = 0; i < debugData.lineMap.length; i++) {
                 if (debugData.lineMap[i] != null) {
                     validBreakpoints.push(i);

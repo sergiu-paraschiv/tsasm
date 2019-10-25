@@ -961,6 +961,16 @@ test('AND $1 $2', () => {
     ]));
 });
 
+test('AND $1 65535', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('AND $1 65535');
+
+    expect(data.program.slice(64)).toEqual(new Uint8Array([
+        Opcode.ANDI, 1, 255, 255
+    ]));
+});
+
 test('OR $1 $2', () => {
     const assembler = new Assembler();
 
@@ -971,6 +981,16 @@ test('OR $1 $2', () => {
     ]));
 });
 
+test('OR $1 65535', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('OR $1 65535');
+
+    expect(data.program.slice(64)).toEqual(new Uint8Array([
+        Opcode.ORI, 1, 255, 255
+    ]));
+});
+
 test('XOR $1 $2', () => {
     const assembler = new Assembler();
 
@@ -978,6 +998,16 @@ test('XOR $1 $2', () => {
 
     expect(data.program.slice(64)).toEqual(new Uint8Array([
         Opcode.XOR, 1, 2, 0
+    ]));
+});
+
+test('XOR $1 65535', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('XOR $1 65535');
+
+    expect(data.program.slice(64)).toEqual(new Uint8Array([
+        Opcode.XORI, 1, 255, 255
     ]));
 });
 
@@ -998,6 +1028,16 @@ test('BIC $1 $2', () => {
 
     expect(data.program.slice(64)).toEqual(new Uint8Array([
         Opcode.BIC, 1, 2, 0
+    ]));
+});
+
+test('BIC $1 65535', () => {
+    const assembler = new Assembler();
+
+    const data = assembler.run('BIC $1 65535');
+
+    expect(data.program.slice(64)).toEqual(new Uint8Array([
+        Opcode.BICI, 1, 255, 255
     ]));
 });
 

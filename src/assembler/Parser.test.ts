@@ -966,6 +966,50 @@ test('BIC $1 $2', () => {
     ]);
 });
 
+test('AND $1 65535', () => {
+    const parser = new Parser();
+
+    parser.feed('AND $1 65535\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['AND', { reg: 1 }, 65535]
+    ]);
+});
+
+test('OR $1 65535', () => {
+    const parser = new Parser();
+
+    parser.feed('OR $1 65535\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['OR', { reg: 1 }, 65535]
+    ]);
+});
+
+test('XOR $1 65535', () => {
+    const parser = new Parser();
+
+    parser.feed('XOR $1 65535\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['XOR', { reg: 1 }, 65535]
+    ]);
+});
+
+test('BIC $1 65535', () => {
+    const parser = new Parser();
+
+    parser.feed('BIC $1 65535\n');
+
+    expect(parser.results.length).toBe(1);
+    expect(parser.results[0]).toEqual([
+        ['BIC', { reg: 1 }, 65535]
+    ]);
+});
+
 test('SHL $1 $2 $3', () => {
     const parser = new Parser();
 

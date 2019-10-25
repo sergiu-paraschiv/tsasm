@@ -243,7 +243,7 @@ export class VM {
             case Opcode.LOADAR:
                 const LOADAR_register = this.next8Bits();
                 const LOADAR_reg_addr = this.next8Bits();
-                const LOADAR_offset = this.next8Bits();
+                const LOADAR_offset = this.next8BitsSigned();
 
                 this.log(
                     'LOADAR',
@@ -780,7 +780,7 @@ export class VM {
 
             case Opcode.SAVETOR:
                 const SAVETOR_reg = this.next8Bits();
-                const SAVETOR_offset = this.next8Bits();
+                const SAVETOR_offset = this.next8BitsSigned();
                 const SAVETOR_int8 = this.next8BitsSigned();
 
                 this.memory.set(this.registers[SAVETOR_reg] + SAVETOR_offset, SAVETOR_int8);
@@ -797,7 +797,7 @@ export class VM {
                 const SAVER_address = this.next16Bits();
                 const SAVER_reg = this.next8Bits();
 
-                this.memory.set(SAVER_address, this.registers[SAVER_reg]);
+                this.memory.set(SAVER_address, this.registers[SAVER_reg] & 255);
 
                 this.log(
                     'SAVER',
@@ -809,7 +809,7 @@ export class VM {
 
             case Opcode.SAVERTOR:
                 const SAVERTOR_to_reg = this.next8Bits();
-                const SAVERTOR_offset = this.next8Bits();
+                const SAVERTOR_offset = this.next8BitsSigned();
                 const SAVERTOR_reg = this.next8Bits();
 
                 this.memory.set(this.registers[SAVERTOR_to_reg] + SAVERTOR_offset, this.registers[SAVERTOR_reg]);
@@ -992,6 +992,66 @@ export class VM {
                     '[', BIC_register1, ':', BIC_old_val, ']',
                     '[', BIC_register2, ':', this.registers[BIC_register2], ']',
                     'res:',  this.registers[BIC_register1]
+                );
+                break;
+
+            case Opcode.ANDI:
+                const ANDI_register1 = this.next8Bits();
+                const ANDI_val = this.next16Bits();
+
+                const ANDI_old_val = this.registers[ANDI_register1];
+                this.registers[ANDI_register1] = this.registers[ANDI_register1] & ANDI_val;
+
+                this.log(
+                    'AND',
+                    '[', ANDI_register1, ':', ANDI_old_val, ']',
+                    '[', ANDI_val, ']',
+                    'res:',  this.registers[ANDI_register1]
+                );
+                break;
+
+            case Opcode.ORI:
+                const ORI_register1 = this.next8Bits();
+                const ORI_val = this.next16Bits();
+
+                const ORI_old_val = this.registers[ORI_register1];
+                this.registers[ORI_register1] = this.registers[ORI_register1] | ORI_val;
+
+                this.log(
+                    'ORI',
+                    '[', ORI_register1, ':', ORI_old_val, ']',
+                    '[', ORI_val, ']',
+                    'res:',  this.registers[ORI_register1]
+                );
+                break;
+
+            case Opcode.XORI:
+                const XORI_register1 = this.next8Bits();
+                const XORI_val = this.next16Bits();
+
+                const XORI_old_val = this.registers[XORI_register1];
+                this.registers[XORI_register1] = this.registers[XORI_register1] ^ XORI_val;
+
+                this.log(
+                    'XORI',
+                    '[', XORI_register1, ':', XORI_old_val, ']',
+                    '[', XORI_val, ']',
+                    'res:',  this.registers[XORI_register1]
+                );
+                break;
+
+            case Opcode.BICI:
+                const BICI_register1 = this.next8Bits();
+                const BICI_val = this.next16Bits();
+
+                const BICI_old_val = this.registers[BICI_register1];
+                this.registers[BICI_register1] = this.registers[BICI_register1] & (~ BICI_val);
+
+                this.log(
+                    'BICI',
+                    '[', BICI_register1, ':', BICI_old_val, ']',
+                    '[', BICI_val, ']',
+                    'res:',  this.registers[BICI_register1]
                 );
                 break;
 

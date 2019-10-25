@@ -322,13 +322,42 @@ export class Assembler {
                         break;
 
                     case Opcode.MOV:
+                        program[codeOffset + 1] = op[1].reg;
+                        program[codeOffset + 2] = op[2].reg;
+                        program[codeOffset + 3] = 0;
+                        break;
+
                     case Opcode.AND:
                     case Opcode.OR:
                     case Opcode.XOR:
                     case Opcode.BIC:
+                    case Opcode.ANDI:
+                    case Opcode.ORI:
+                    case Opcode.XORI:
+                    case Opcode.BICI:
                         program[codeOffset + 1] = op[1].reg;
-                        program[codeOffset + 2] = op[2].reg;
-                        program[codeOffset + 3] = 0;
+
+                        if (op[2].reg) {
+                            program[codeOffset + 2] = op[2].reg;
+                            program[codeOffset + 3] = 0;
+                        }
+                        else {
+                            if (opcode === Opcode.AND) {
+                                program[codeOffset] = Opcode.ANDI;
+                            }
+                            else if (opcode === Opcode.OR) {
+                                program[codeOffset] = Opcode.ORI;
+                            }
+                            else if (opcode === Opcode.XOR) {
+                                program[codeOffset] = Opcode.XORI;
+                            }
+                            else if (opcode === Opcode.BIC) {
+                                program[codeOffset] = Opcode.BICI;
+                            }
+
+                            program[codeOffset + 2] = op[2] >>> 8;
+                            program[codeOffset + 3] = op[2] & 255;
+                        }
                         break;
 
 

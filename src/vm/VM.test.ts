@@ -745,13 +745,13 @@ test('LOAD $1 [$2]', () => {
     expect(vm.registers[1]).toBe(10);
 });
 
-test('LOAD $1 [$2, 255]', () => {
+test('LOAD $1 [$2, 127]', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... HEADER_SECTION,
-        Opcode.SAVE, 0, 255, 10,
+        Opcode.SAVE, 0, 127, 10,
         Opcode.LOAD, 2, 0, 0,
-        Opcode.LOADAR, 1, 2, 255,
+        Opcode.LOADAR, 1, 2, 127,
         Opcode.HALT, 0, 0, 0
     ]);
 
@@ -785,17 +785,17 @@ test('SAVE [$1] -10, $1 = 32767', () => {
     expect(vm.memory.get(32767)).toBe(246);
 });
 
-test('SAVE [$1, 255] 100, $1 = 32767', () => {
+test('SAVE [$1, -10] 100, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
-        Opcode.SAVETOR, 1, 255, 10,
+        Opcode.SAVETOR, 1, -10, 10,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.memory.get(32767 + 255)).toBe(10);
+    expect(vm.memory.get(32767 -10)).toBe(10);
 });
 
 test('SAVE [0] $2', () => {
@@ -839,18 +839,18 @@ test('SAVE [$1] $2, $1 = 32767', () => {
     expect(vm.memory.get(32767)).toBe(10);
 });
 
-test('SAVE [$1, 255] $2, $1 = 32767', () => {
+test('SAVE [$1, 127] $2, $1 = 32767', () => {
     const vm = new VM();
     vm.program = Uint8Array.from([
         ... HEADER_SECTION,
         Opcode.LOAD, 1, 127, 255,
         Opcode.LOAD, 2, 0, 10,
-        Opcode.SAVERTOR, 1, 255, 2,
+        Opcode.SAVERTOR, 1, 127, 2,
         Opcode.HALT, 0, 0, 0
     ]);
 
     vm.run();
-    expect(vm.memory.get(32767 + 255)).toBe(10);
+    expect(vm.memory.get(32767 + 127)).toBe(10);
 });
 
 test('SAVE [$1] 10, LOAD $3 [$1] where $1 points to (256 * 256 - 1) * 256', () => {
@@ -908,7 +908,7 @@ test('PROGRAM #3 - with memory stuff', () => {
         /* 68  */ Opcode.LOAD,     2,   0,  9,   // put 9 in $2, our end index
         /* 72  */ Opcode.LOAD,     3,   0,  1,   // put 1 in $3, our increment
         /* 76  */ Opcode.LOAD,     4,   0,  0,   // unused
-        /* 80  */ Opcode.SAVERTOR, 1, 255,  1,   // save value of $1 in memory at address [$1, 255]
+        /* 80  */ Opcode.SAVERTOR, 1, 127,  1,   // save value of $1 in memory at address [$1, 127]
         /* 84  */ Opcode.ADD,      1,   1,  3,   // add $3 (incrementer) to $1 and save it to $1
         /* 88  */ Opcode.CMP,      1,   2,  0,   // compare $1 with $2
         /* 102 */ Opcode.JLTEL,    80,  0,  0,   // jump to start of loop while $1 <= $2
@@ -918,7 +918,7 @@ test('PROGRAM #3 - with memory stuff', () => {
     vm.run();
 
     for (let i = 0; i <= 9; i++) {
-        expect(vm.memory.get(i + 255)).toBe(i);
+        expect(vm.memory.get(i + 127)).toBe(i);
     }
 });
 
@@ -1098,7 +1098,7 @@ test('MOV', () => {
     vm.registers[1] = 1;
     vm.registers[2] = 2;
 
-    vm.program = Uint8Array.from([Opcode.MOV,  1, 2, 0]);
+    vm.program = Uint8Array.from([Opcode.MOV, 1, 2, 0]);
 
     vm.exec();
     expect(vm.registers[1]).toBe(2);
@@ -1110,7 +1110,7 @@ test('AND', () => {
     vm.registers[1] = 1;
     vm.registers[2] = 3;
 
-    vm.program = Uint8Array.from([Opcode.AND,  0, 1, 2]);
+    vm.program = Uint8Array.from([Opcode.AND, 1, 2, 0]);
 
     vm.exec();
     expect(vm.registers[1]).toBe(1);
@@ -1121,7 +1121,7 @@ test('OR', () => {
     vm.registers[1] = 1;
     vm.registers[2] = 2;
 
-    vm.program = Uint8Array.from([Opcode.OR,   1, 2, 0]);
+    vm.program = Uint8Array.from([Opcode.OR, 1, 2, 0]);
 
     vm.exec();
     expect(vm.registers[1]).toBe(3);
@@ -1132,7 +1132,7 @@ test('XOR', () => {
     vm.registers[1] = 1;
     vm.registers[2] = 3;
 
-    vm.program = Uint8Array.from([Opcode.XOR,  1, 2, 0]);
+    vm.program = Uint8Array.from([Opcode.XOR, 1, 2, 0]);
 
     vm.exec();
     expect(vm.registers[1]).toBe(2);
@@ -1153,7 +1153,47 @@ test('BIC', () => {
     vm.registers[1] = 15;
     vm.registers[2] = 1;
 
-    vm.program = Uint8Array.from([Opcode.BIC,  1, 2, 0]);
+    vm.program = Uint8Array.from([Opcode.BIC, 1, 2, 0]);
+
+    vm.exec();
+    expect(vm.registers[1]).toBe(14);
+});
+
+test('ANDI', () => {
+    const vm = new VM();
+    vm.registers[1] = 1;
+
+    vm.program = Uint8Array.from([Opcode.ANDI, 1, 0, 3]);
+
+    vm.exec();
+    expect(vm.registers[1]).toBe(1);
+});
+
+test('ORI', () => {
+    const vm = new VM();
+    vm.registers[1] = 1;
+
+    vm.program = Uint8Array.from([Opcode.ORI, 1, 0, 2]);
+
+    vm.exec();
+    expect(vm.registers[1]).toBe(3);
+});
+
+test('XORI', () => {
+    const vm = new VM();
+    vm.registers[1] = 1;
+
+    vm.program = Uint8Array.from([Opcode.XORI, 1, 0, 3]);
+
+    vm.exec();
+    expect(vm.registers[1]).toBe(2);
+});
+
+test('BICI', () => {
+    const vm = new VM();
+    vm.registers[1] = 15;
+
+    vm.program = Uint8Array.from([Opcode.BICI, 1, 0, 1]);
 
     vm.exec();
     expect(vm.registers[1]).toBe(14);

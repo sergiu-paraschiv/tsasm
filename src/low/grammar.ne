@@ -1,5 +1,13 @@
 @{%
 
+const {
+    Const,
+    Declare,
+    Assign,
+    MathOp,
+    BinOp
+} = require('./ParserStatements');
+
 const moo = require('moo');
 
 const lexer = moo.compile({
@@ -7,43 +15,60 @@ const lexer = moo.compile({
   eol:          { match: /\n/, lineBreaks: true },
   float:        /0\.[0-9]+|[1-9][0-9]*\.[0-9]+|-0\.[0-9]+|-[1-9][0-9]*\.[0-9]+/,
   int:          /0|[1-9][0-9]*|-[1-9][0-9]*/,
-  keyWord:      [ 'let' ],
-  operator:     { match: /[\+\-\*\/\%]/, type: moo.keywords({
+  lp:           '(',
+  rp:           ')',
+  keyWord:      [ 'int', ':=' ],
+  operator:     { match: /[\+\-\*\/\%\^]/, type: moo.keywords({
                   'sum': '+',
-                  'diff': '-',
+                  'sub': '-',
                   'mul': '*',
                   'div': '/',
-                  'mod': '%'
+                  'mod': '%',
+                  'exp': '^'
                 }) },
   varName:      /[a-zA-Z][a-zA-Z0-9_]*/
 });
 
-const _o = term => ({ t: term.type });
-const _v = term => ({ t: term.type, v: term.value });
-const _vn = term => ({ t: term.type, v: term.type === 'int' ? parseInt(term.value, 10) :  parseFloat(term.value) });
+const _t  = term    => term.type;
+const _v  = term    => term.value;
+const _vi = term    => parseInt(term.value, 10);
+const _vf = term    => parseFloat(term.value);
 
 %}
 
 @lexer lexer
 
 
-main      -> line:*                             {% id %}
+main      -> line:*                                 {% id %}
 
-line      -> statement %ws %eol                 {% id %}
-           | statement %eol                     {% id %}
-           | math %eol                          {% id %}
+line      -> statement %ws %eol                     {% id %}
+           | statement %eol                         {% id %}
+           | %ws statement %ws %eol                 {% d => d[1] %}
+           | %ws statement %eol                     {% d => d[1] %}
+           | %ws %eol %ws                           {% d => null %}
+           | %ws %eol                               {% d => null %}
+           | %eol                                   {% d => null %}
 
-math      -> sum                                {% id %}
 
-sum       -> number %ws "+" %ws number          {% d => [ _o(d[2]), _vn(d[0]), _vn(d[4]) ] %}
-           | number %ws "-" %ws number          {% d => [ _o(d[2]), _vn(d[0]), _vn(d[4]) ] %}
-           | prod                               {% id %}
+statement -> "int" %ws %varName                          {% d => new Declare(_v(d[2])) %}
+           | "int" %ws %varName %ws ":=" %ws bin_math    {% d => new Declare(_v(d[2]), d[6]) %}
+           | %varName %ws ":=" %ws bin_math              {% d => new Assign(_v(d[0]), d[4]) %}
 
-prod      -> number %ws "*" %ws number          {% d => [ _o(d[2]), _vn(d[0]), _vn(d[4]) ] %}
-           | number %ws "/" %ws number          {% d => [ _o(d[2]), _vn(d[0]), _vn(d[4]) ] %}
-           | number %ws "%" %ws number          {% d => [ _o(d[2]), _vn(d[0]), _vn(d[4]) ] %}
 
-number    -> %int                               {% id %}
-           | %float                             {% id %}
+bin_math  -> sum                                    {% id %}
 
-statement -> "let" %ws %varName                 {% d => [ _v(d[0]), _v(d[2]) ] %}
+sum       -> sum %ws "+" %ws prod                   {% d => new BinOp(MathOp.SUM, d[0], d[4]) %}
+           | sum %ws "-" %ws prod                   {% d => new BinOp(MathOp.SUB, d[0], d[4]) %}
+           | prod                                   {% id %}
+
+prod      -> prod %ws "*" %ws exp                   {% d => new BinOp(MathOp.MUL, d[0], d[4]) %}
+           | prod %ws "/" %ws exp                   {% d => new BinOp(MathOp.DIV, d[0], d[4]) %}
+           | prod %ws "%" %ws exp                   {% d => new BinOp(MathOp.MOD, d[0], d[4]) %}
+           | exp                                    {% id %}
+
+exp       -> exp %ws "^" %ws bin_math_op            {% d => new BinOp(MathOp.EXP, d[0], d[4]) %}
+           | bin_math_op                            {% id %}
+
+bin_math_op -> %int                                 {% d => new Const(_vi(d[0])) %}
+             | %varName                             {% d => _v(d[0]) %}
+             | %lp %ws bin_math %ws %rp             {% d => d[2] %}       # yes, recursive

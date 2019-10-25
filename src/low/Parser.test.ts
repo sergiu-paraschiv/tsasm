@@ -1,49 +1,65 @@
 import { Parser } from './Parser';
-import { ParserError } from './ParserError';
+import { Assign, BinOp, Const, Declare, MathOp } from './ParserStatements';
 
 
-test('variable declaration with let', () => {
+test('variable declaration', () => {
     const parser = new Parser();
     let results;
 
-    parser.feed('let x\n');
+    parser.feed('int x\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'keyWord', v: 'let'}, {t: 'varName', v: 'x'}]
+        new Declare('x')
     ]);
 
-    parser.feed('let X\n');
+    parser.feed('int X\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'keyWord', v: 'let'}, {t: 'varName', v: 'X'}]
+        new Declare('X')
     ]);
 
-    parser.feed('let x1A3465XXXdfgdh44\n');
+    parser.feed('int x1A3465XXXdfgdh44\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'keyWord', v: 'let'}, {t: 'varName', v: 'x1A3465XXXdfgdh44'}]
+        new Declare('x1A3465XXXdfgdh44')
     ]);
 
-    parser.feed('let a_B_3\n');
+    parser.feed('int a_B_3\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'keyWord', v: 'let'}, {t: 'varName', v: 'a_B_3'}]
+        new Declare('a_B_3')
     ]);
 
-    parser.feed('let      xyz1 \n');
+    parser.feed('int      xyz1 \n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'keyWord', v: 'let'}, {t: 'varName', v: 'xyz1'}]
+        new Declare('xyz1')
+    ]);
+
+    parser.feed('int x := 10\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Declare('x', new Const(10))
+    ]);
+
+    parser.feed('int x := y\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Declare('x', 'y')
     ]);
 });
 
@@ -51,173 +67,358 @@ test('invalid variable names', () => {
     const parser = new Parser();
 
     expect(() => {
-        parser.feed('let 0\n');
+        parser.feed('int 0\n');
         parser.finish();
-    }).toThrowError(new ParserError('Invalid syntax', 1, 5));
+    }).toThrowError('Syntax error at line 1 col 5:');
 
     expect(() => {
-        parser.feed('let 0aaa\n');
+        parser.feed('int 0aaa\n');
         parser.finish();
-    }).toThrowError(new ParserError('Invalid syntax', 1, 5));
+    }).toThrowError('Syntax error at line 1 col 1:');
 
     expect(() => {
-        parser.feed('let ?\n');
+        parser.feed('int ?\n');
         parser.finish();
-    }).toThrowError(new ParserError('Invalid syntax', 1, 5));
+    }).toThrowError('Syntax error at line 1 col 1:');
 
     expect(() => {
-        parser.feed('let .aaa.gfh5\n');
+        parser.feed('int .aaa.gfh5\n');
         parser.finish();
-    }).toThrowError(new ParserError('Invalid syntax', 1, 5));
+    }).toThrowError('Syntax error at line 1 col 1:');
 
     expect(() => {
-        parser.feed('let aaa-bbb\n');
+        parser.feed('int aaa-bbb\n');
         parser.finish();
-    }).toThrowError(new ParserError('Invalid syntax', 1, 5));
+    }).toThrowError('Syntax error at line 1 col 1:');
 
     expect(() => {
-        parser.feed('let    0   \n');
+        parser.feed('int    0   \n');
         parser.finish();
-    }).toThrowError(new ParserError('Invalid syntax', 1, 10));
+    }).toThrowError('Syntax error at line 1 col 1:');
 });
 
-test('sums with ints', () => {
+test('variable assignment', () => {
     const parser = new Parser();
     let results;
 
-    parser.feed('1 + 2\n');
+    parser.feed('x := 1\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'sum'}, {t: 'int', v: 1}, {t: 'int', v: 2}]
+        new Assign('x', new Const(1))
     ]);
 
-    parser.feed('0 + 100\n');
+    parser.feed('x := y\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'sum'}, {t: 'int', v: 0}, {t: 'int', v: 100}]
+        new Assign('x', 'y')
     ]);
 });
 
-test('invalid ints', () => {
-    const parser = new Parser();
-
-    expect(() => {
-        parser.feed('012 + 2\n');
-    }).toThrowError(new ParserError('Invalid syntax', 1, 0));
-});
-
-test('sums with floats', () => {
+test('math with ints', () => {
     const parser = new Parser();
     let results;
 
-    parser.feed('0 + 0.0\n');
+    parser.feed('x := 1 + 2\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'sum'}, {t: 'int', v: 0}, {t: 'float', v: 0.0}]
+        new Assign(
+            'x',
+            new BinOp(MathOp.SUM, new Const(1), new Const(2))
+        )
     ]);
 
-    parser.feed('0.123 + 1.5678\n');
+    parser.feed('x := -1 + 2\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'sum'}, {t: 'float', v: 0.123}, {t: 'float', v: 1.5678}]
+        new Assign(
+            'x',
+            new BinOp(MathOp.SUM, new Const(-1), new Const(2))
+        )
     ]);
 
-    parser.feed('3456567.123 + 555\n');
+    parser.feed('x := -1 - -2\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'sum'}, {t: 'float', v: 3456567.123}, {t: 'int', v: 555}]
+        new Assign(
+            'x',
+            new BinOp(MathOp.SUB, new Const(-1), new Const(-2))
+        )
+    ]);
+
+    parser.feed('x := 1 * 2\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(MathOp.MUL, new Const(1), new Const(2))
+        )
+    ]);
+
+    parser.feed('x := 1 / 2\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(MathOp.DIV, new Const(1), new Const(2))
+        )
+    ]);
+
+    parser.feed('x := 1 % 2\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(MathOp.MOD, new Const(1), new Const(2))
+        )
+    ]);
+
+    parser.feed('x := 1 ^ 2\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(MathOp.EXP, new Const(1), new Const(2))
+        )
+    ]);
+
+    parser.feed('x := 1 + 2 + 3\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUM,
+                new BinOp(
+                    MathOp.SUM,
+                    new Const(1),
+                    new Const(2)
+                ),
+                new Const(3)
+            )
+        )
+    ]);
+
+    parser.feed('x := 1 * 2 + 3\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUM,
+                new BinOp(
+                    MathOp.MUL,
+                    new Const(1),
+                    new Const(2)
+                ),
+                new Const(3)
+            )
+        )
+    ]);
+
+    parser.feed('x := 1 + 2 * 3\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUM,
+                new Const(1),
+                new BinOp(
+                    MathOp.MUL,
+                    new Const(2),
+                    new Const(3)
+                )
+            )
+        )
+    ]);
+
+    parser.feed('x := 1 ^ 2 + 3 * -3 - 7 ^ 2\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUB,
+                new BinOp(
+                    MathOp.SUM,
+                    new BinOp(
+                        MathOp.EXP,
+                        new Const(1),
+                        new Const(2)
+                    ),
+                    new BinOp(
+                        MathOp.MUL,
+                        new Const(3),
+                        new Const(-3)
+                    )
+                ),
+                new BinOp(
+                    MathOp.EXP,
+                    new Const(7),
+                    new Const(2)
+                )
+            )
+        )
+    ]);
+
+    parser.feed('x := ( 1 )\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new Const(1)
+        )
+    ]);
+
+    parser.feed('x := ( 1 + 2 + 3 )\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUM,
+                new BinOp(
+                    MathOp.SUM,
+                    new Const(1),
+                    new Const(2)
+                ),
+                new Const(3)
+            )
+        )
+    ]);
+
+    parser.feed('x := ( 1 + ( 2 + 3 ) )\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUM,
+                new Const(1),
+                new BinOp(
+                    MathOp.SUM,
+                    new Const(2),
+                    new Const(3)
+                )
+            )
+        )
+    ]);
+
+    parser.feed('x := 1 * ( 2 + 3 )\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.MUL,
+                new Const(1),
+                new BinOp(
+                    MathOp.SUM,
+                    new Const(2),
+                    new Const(3)
+                )
+            )
+        )
+    ]);
+
+    parser.feed('x := ( 1 * ( 2 + -3 ) / 16 ^ ( 3 - 2 ) )\n');
+    results = parser.finish();
+
+    expect(results.length).toBe(1);
+    expect(results[0]).toEqual([
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.DIV,
+                new BinOp(
+                    MathOp.MUL,
+                    new Const(1),
+                    new BinOp(
+                        MathOp.SUM,
+                        new Const(2),
+                        new Const(-3)
+                    )
+                ),
+                new BinOp(
+                    MathOp.EXP,
+                    new Const(16),
+                    new BinOp(
+                        MathOp.SUB,
+                        new Const(3),
+                        new Const(2)
+                    )
+                )
+            )
+        )
     ]);
 });
 
-test('negative numbers', () => {
+
+test('maths with variables', () => {
     const parser = new Parser();
     let results;
 
-    parser.feed('-1 + -0.54\n');
+    parser.feed('x := y + 1\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'sum'}, {t: 'int', v: -1}, {t: 'float', v: -0.54}]
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUM,
+                'y',
+                new Const(1)
+            )
+        )
     ]);
 
-    parser.feed('-1.0 + -66.4\n');
+    parser.feed('x := y + z\n');
     results = parser.finish();
 
     expect(results.length).toBe(1);
     expect(results[0]).toEqual([
-        [{t: 'sum'}, {t: 'float', v: -1.0}, {t: 'float', v: -66.4}]
-    ]);
-});
-
-test('diff', () => {
-    const parser = new Parser();
-    let results;
-
-    parser.feed('-1 - -0.54\n');
-    results = parser.finish();
-
-    expect(results.length).toBe(1);
-    expect(results[0]).toEqual([
-        [{t: 'diff'}, {t: 'int', v: -1}, {t: 'float', v: -0.54}]
-    ]);
-
-    parser.feed('1.0 - 66666\n');
-    results = parser.finish();
-
-    expect(results.length).toBe(1);
-    expect(results[0]).toEqual([
-        [{t: 'diff'}, {t: 'float', v: 1.0}, {t: 'int', v: 66666}]
+        new Assign(
+            'x',
+            new BinOp(
+                MathOp.SUM,
+                'y',
+                'z'
+            )
+        )
     ]);
 });
-
-test('mul', () => {
-    const parser = new Parser();
-    let results;
-
-    parser.feed('-1 * -0.54\n');
-    results = parser.finish();
-
-    expect(results.length).toBe(1);
-    expect(results[0]).toEqual([
-        [{t: 'mul'}, {t: 'int', v: -1}, {t: 'float', v: -0.54}]
-    ]);
-});
-
-test('div', () => {
-    const parser = new Parser();
-    let results;
-
-    parser.feed('-1 / -0.54\n');
-    results = parser.finish();
-
-    expect(results.length).toBe(1);
-    expect(results[0]).toEqual([
-        [{t: 'div'}, {t: 'int', v: -1}, {t: 'float', v: -0.54}]
-    ]);
-});
-
-test('mod', () => {
-    const parser = new Parser();
-    let results;
-
-    parser.feed('-1 % -0.54\n');
-    results = parser.finish();
-
-    expect(results.length).toBe(1);
-    expect(results[0]).toEqual([
-        [{t: 'mod'}, {t: 'int', v: -1}, {t: 'float', v: -0.54}]
-    ]);
-});
-
-

@@ -24,6 +24,7 @@ instr -> instr_no_op                                       {% d => [ d[0] ] %}
        | instr_label            __ label                   {% d => [ d[0], d[2] ] %}
        | instr_reg_reg          __ reg  __ reg             {% d => [ d[0], d[2], d[4] ] %}
        | instr_reg_int16        __ reg  __ int16           {% d => [ d[0], d[2], d[4] ] %}
+       | insr_reg_uint16        __ reg  __ uint16          {% d => [ d[0], d[2], d[4] ] %}
        | instr_reg_int8_reg     __ reg  __ int8   __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
        | instr_reg_reg_uint8    __ reg  __ reg    __ uint8 {% d => [ d[0], d[2], d[4], d[6] ] %}
        | instr_reg_reg_reg      __ reg  __ reg    __ reg   {% d => [ d[0], d[2], d[4], d[6] ] %}
@@ -72,6 +73,11 @@ instr_reg_reg   -> "CMP"     {% id %}
 
 instr_reg_int16 -> "CMP"     {% id %}
                  | "CMPN"    {% id %}
+
+insr_reg_uint16 -> "AND"     {% id %}
+                 | "OR"      {% id %}
+                 | "XOR"     {% id %}
+                 | "BIC"     {% id %}
 
 instr_reg_reg_reg   -> "ADD"     {% id %}
                      | "SUB"     {% id %}
