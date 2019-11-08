@@ -5,7 +5,7 @@
   "scripts": {
     "test": "jest",
     "grammar-asm": "nearleyc ./src/assembler/grammar.ne -o ./src/assembler/grammar.js",
-    "grammar-low": "nearleyc ./src/low/grammar.ne -o ./src/low/grammar.js"
+    "grammar-low": "nearleyc ./src/low/grammar/main.ne -o ./src/low/grammar.js"
   },
   "author": "",
   "license": "ISC",

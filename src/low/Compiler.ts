@@ -1,5 +1,5 @@
 import { Parser } from './Parser';
-import { Assign, BinOp, Const, Declare, MathOp } from './ParserStatements';
+import { Assign, BinOp, BinOpType, Const, Declare, ImmediateType } from './ParserStatements';
 import { CompilerError } from './CompilerError';
 
 
@@ -99,22 +99,22 @@ export class Compiler {
 
         this.body.push('POP $2');
 
-        if (op.op === MathOp.SUM) {
+        if (op.op === BinOpType.SUM) {
             this.body.push('ADD $1 $1 $2');
         }
-        else if (op.op === MathOp.SUB) {
+        else if (op.op === BinOpType.SUB) {
             this.body.push('SUB $1 $2 $1');
         }
-        else if (op.op === MathOp.MUL) {
+        else if (op.op === BinOpType.MUL) {
             this.body.push('MUL $1 $1 $2');
         }
-        else if (op.op === MathOp.DIV) {
+        else if (op.op === BinOpType.DIV) {
             this.body.push('DIV $1 $2 $1');
         }
-        else if (op.op === MathOp.MOD) {
+        else if (op.op === BinOpType.MOD) {
             // TODO
         }
-        else if (op.op === MathOp.EXP) {
+        else if (op.op === BinOpType.EXP) {
             // TODO
         }
     }
@@ -137,13 +137,20 @@ export class Compiler {
             this.body.push('PUSH $1');
         }
         else if (op.initializer instanceof Const) {
-            this.guardInt32(op.initializer.value);
-            const initValue = op.initializer.value;
+            let initValue;
+
+            if (op.initializer.type === ImmediateType.INT) {
+                this.guardInt32(op.initializer.value);
+                initValue = op.initializer.value;
+            }
+            else if (op.initializer.type === ImmediateType.BOOL) {
+                initValue = (op.initializer.value === true) ? 1 : 0;
+            }
 
             this.body.push('LOAD $1 ' + initValue);
             this.body.push('PUSH $1');
         }
-        else { // initializer is be variable
+        else { // initializer is variable
             this.body.push('LOAD $1 0');
             this.body.push('PUSH $1');
 
@@ -172,12 +179,20 @@ export class Compiler {
 
         }
         else if (op.value instanceof Const) {
-            this.guardInt32(op.value.value);
+            if (op.value.type === ImmediateType.INT) {
+                this.guardInt32(op.value.value);
 
-            this.body.push(`SAVE [$12, ${toAddr - 3}] ${(op.value.value >>> 24) & 255}`);
-            this.body.push(`SAVE [$12, ${toAddr - 2}] ${(op.value.value >>> 16) & 255}`);
-            this.body.push(`SAVE [$12, ${toAddr - 1}] ${(op.value.value >>> 8) & 255}`);
-            this.body.push(`SAVE [$12, ${toAddr}] ${op.value.value & 255}`);
+                this.body.push(`SAVE [$12, ${toAddr - 3}] ${(op.value.value >>> 24) & 255}`);
+                this.body.push(`SAVE [$12, ${toAddr - 2}] ${(op.value.value >>> 16) & 255}`);
+                this.body.push(`SAVE [$12, ${toAddr - 1}] ${(op.value.value >>> 8) & 255}`);
+                this.body.push(`SAVE [$12, ${toAddr}] ${op.value.value & 255}`);
+            }
+            else if (op.value.type === ImmediateType.BOOL) {
+                this.body.push(`SAVE [$12, ${toAddr - 3}] 0`);
+                this.body.push(`SAVE [$12, ${toAddr - 2}] 0`);
+                this.body.push(`SAVE [$12, ${toAddr - 1}] 0`);
+                this.body.push(`SAVE [$12, ${toAddr}] ${(op.value.value === true) ? 1 : 0}`);
+            }
         }
         else { // assigning variable
             if (!this.symbols.hasOwnProperty(op.value)) {
