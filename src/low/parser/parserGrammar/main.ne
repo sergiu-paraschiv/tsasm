@@ -1,7 +1,10 @@
 @{%
 const moo = require('moo');
 const U = require('./ParserUtils');
-const G = require('./ParserGrammar');
+const L = require('./ParserGrammarLexemes');
+const E = require('../grammar/Expression');
+const S = require('../grammar/Statement');
+
 
 const lexer = moo.compile({
     WS: /[ \t]+/,

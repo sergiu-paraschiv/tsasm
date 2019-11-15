@@ -1,4 +1,4 @@
-import { LexerItem } from './ParserGrammar';
+import { LexerItem } from './ParserGrammarParts';
 
 
 export function val(items: (LexerItem<string> | string)[]): string {

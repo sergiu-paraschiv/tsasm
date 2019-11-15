@@ -1,5 +1,5 @@
-import { Parser } from '../../../Parser';
-import * as G from '../../../ParserGrammar';
+import { Parser } from '../../../parser/Parser';
+import * as S from '../../../grammar/Statement';
 
 
 describe('Parser:statements:comment', () => {
@@ -12,7 +12,7 @@ describe('Parser:statements:comment', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.Comment(' foo bar baz')
+            new S.Comment(' foo bar baz')
         ]);
     });
 });

@@ -1,6 +1,7 @@
-import { Parser } from '../../../Parser';
-import * as G from '../../../ParserGrammar';
-
+import { Parser } from '../../../parser/Parser';
+import * as L from '../../../parser/ParserGrammarLexemes';
+import * as E from '../../../grammar/Expression';
+import * as S from '../../../grammar/Statement';
 
 
 describe('Parser:statements:assignment', () => {
@@ -13,7 +14,7 @@ describe('Parser:statements:assignment', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'), new G.VarName('b') ])
+            new S.VarAssignment([ new L.VarName('a'), new L.VarName('b') ])
         ]);
     });
 
@@ -26,7 +27,7 @@ describe('Parser:statements:assignment', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'), new G.VarName('b') ])
+            new S.VarAssignment([ new L.VarName('a'), new L.VarName('b') ])
         ]);
 
         parser.feed('   a    \n :=  \n  b   \n');
@@ -34,7 +35,7 @@ describe('Parser:statements:assignment', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'), new G.VarName('b') ])
+            new S.VarAssignment([ new L.VarName('a'), new L.VarName('b') ])
         ]);
 
         parser.feed('a :=     b     ||     c    \n');
@@ -42,12 +43,12 @@ describe('Parser:statements:assignment', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([
-                new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.OR,
-                    new G.VarName('b'),
-                    new G.VarName('c')
+            new S.VarAssignment([
+                new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.OR,
+                    new L.VarName('b'),
+                    new L.VarName('c')
                 ])
             ])
         ]);
@@ -57,12 +58,12 @@ describe('Parser:statements:assignment', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([
-                new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.OR,
-                    new G.VarName('b'),
-                    new G.VarName('c')
+            new S.VarAssignment([
+                new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.OR,
+                    new L.VarName('b'),
+                    new L.VarName('c')
                 ])
             ])
         ]);

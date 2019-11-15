@@ -1,6 +1,7 @@
-import { Parser } from '../../../Parser';
-import * as G from '../../../ParserGrammar';
-
+import { Parser } from '../../../parser/Parser';
+import * as L from '../../../parser/ParserGrammarLexemes';
+import * as E from '../../../grammar/Expression';
+import * as S from '../../../grammar/Statement';
 
 
 describe('Parser:statements:assignment:int', () => {
@@ -13,7 +14,7 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'), new G.IntegerLiteral(10) ])
+            new S.VarAssignment([ new L.VarName('a'), new L.IntegerLiteral(10) ])
         ]);
     });
 
@@ -25,8 +26,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.UnaryExpression([ G.UnaryIntegerOperator.POS, new G.IntegerLiteral(10) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.UnaryExpression([ L.UnaryIntegerOperator.POS, new L.IntegerLiteral(10) ])
             ])
         ]);
 
@@ -34,8 +35,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.UnaryExpression([ G.UnaryIntegerOperator.NEG, new G.IntegerLiteral(10) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.UnaryExpression([ L.UnaryIntegerOperator.NEG, new L.IntegerLiteral(10) ])
             ])
         ]);
 
@@ -43,8 +44,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.UnaryExpression([ G.UnaryIntegerOperator.NEG, new G.VarName('b') ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.UnaryExpression([ L.UnaryIntegerOperator.NEG, new L.VarName('b') ])
             ])
         ]);
     });
@@ -57,8 +58,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryIntegerOperator.ADD, new G.IntegerLiteral(1), new G.IntegerLiteral(2) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryIntegerOperator.ADD, new L.IntegerLiteral(1), new L.IntegerLiteral(2) ])
             ])
         ]);
 
@@ -66,8 +67,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryIntegerOperator.ADD, new G.VarName('b'), new G.IntegerLiteral(2) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryIntegerOperator.ADD, new L.VarName('b'), new L.IntegerLiteral(2) ])
             ])
         ]);
 
@@ -75,8 +76,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryIntegerOperator.SUB, new G.IntegerLiteral(1), new G.IntegerLiteral(2) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryIntegerOperator.SUB, new L.IntegerLiteral(1), new L.IntegerLiteral(2) ])
             ])
         ]);
 
@@ -84,11 +85,11 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryIntegerOperator.ADD,
-                    new G.UnaryExpression([ G.UnaryIntegerOperator.NEG, new G.IntegerLiteral(1) ]),
-                    new G.IntegerLiteral(2)
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryIntegerOperator.ADD,
+                    new E.UnaryExpression([ L.UnaryIntegerOperator.NEG, new L.IntegerLiteral(1) ]),
+                    new L.IntegerLiteral(2)
                 ])
             ])
         ]);
@@ -97,15 +98,15 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryIntegerOperator.ADD,
-                    new G.BinaryExpression([
-                        G.BinaryIntegerOperator.SUB,
-                        new G.IntegerLiteral(1),
-                        new G.BinaryExpression([ G.BinaryIntegerOperator.MUL, new G.IntegerLiteral(2), new G.IntegerLiteral(3) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryIntegerOperator.ADD,
+                    new E.BinaryExpression([
+                        L.BinaryIntegerOperator.SUB,
+                        new L.IntegerLiteral(1),
+                        new E.BinaryExpression([ L.BinaryIntegerOperator.MUL, new L.IntegerLiteral(2), new L.IntegerLiteral(3) ])
                     ]),
-                    new G.IntegerLiteral(4)
+                    new L.IntegerLiteral(4)
                 ])
             ])
         ]);
@@ -114,11 +115,11 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryIntegerOperator.ADD,
-                    new G.BinaryExpression([ G.BinaryIntegerOperator.DIV, new G.IntegerLiteral(1), new G.IntegerLiteral(2) ]),
-                    new G.IntegerLiteral(3)
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryIntegerOperator.ADD,
+                    new E.BinaryExpression([ L.BinaryIntegerOperator.DIV, new L.IntegerLiteral(1), new L.IntegerLiteral(2) ]),
+                    new L.IntegerLiteral(3)
                 ])
             ])
         ]);
@@ -127,15 +128,15 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryIntegerOperator.MOD,
-                    new G.BinaryExpression([
-                        G.BinaryIntegerOperator.MUL,
-                        new G.IntegerLiteral(2),
-                        new G.UnaryExpression([ G.UnaryIntegerOperator.NEG, new G.IntegerLiteral(3) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryIntegerOperator.MOD,
+                    new E.BinaryExpression([
+                        L.BinaryIntegerOperator.MUL,
+                        new L.IntegerLiteral(2),
+                        new E.UnaryExpression([ L.UnaryIntegerOperator.NEG, new L.IntegerLiteral(3) ])
                     ]),
-                    new G.IntegerLiteral(4),
+                    new L.IntegerLiteral(4),
                 ])
             ])
         ]);
@@ -144,23 +145,23 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryIntegerOperator.SUB,
-                    new G.BinaryExpression([
-                        G.BinaryIntegerOperator.ADD,
-                        new G.IntegerLiteral(1),
-                        new G.BinaryExpression([
-                            G.BinaryIntegerOperator.DIV,
-                            new G.BinaryExpression([
-                                G.BinaryIntegerOperator.MUL,
-                                new G.IntegerLiteral(2),
-                                new G.UnaryExpression([ G.UnaryIntegerOperator.NEG, new G.IntegerLiteral(3) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryIntegerOperator.SUB,
+                    new E.BinaryExpression([
+                        L.BinaryIntegerOperator.ADD,
+                        new L.IntegerLiteral(1),
+                        new E.BinaryExpression([
+                            L.BinaryIntegerOperator.DIV,
+                            new E.BinaryExpression([
+                                L.BinaryIntegerOperator.MUL,
+                                new L.IntegerLiteral(2),
+                                new E.UnaryExpression([ L.UnaryIntegerOperator.NEG, new L.IntegerLiteral(3) ])
                             ]),
-                            new G.IntegerLiteral(4),
+                            new L.IntegerLiteral(4),
                         ])
                     ]),
-                    new G.IntegerLiteral(5)
+                    new L.IntegerLiteral(5)
                 ])
             ])
         ]);
@@ -174,8 +175,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.IntegerLiteral(1)
+            new S.VarAssignment([ new L.VarName('a'),
+                new L.IntegerLiteral(1)
             ])
         ]);
 
@@ -183,8 +184,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.IntegerLiteral(1)
+            new S.VarAssignment([ new L.VarName('a'),
+                new L.IntegerLiteral(1)
             ])
         ]);
 
@@ -192,8 +193,8 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryIntegerOperator.ADD, new G.IntegerLiteral(1), new G.IntegerLiteral(2) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryIntegerOperator.ADD, new L.IntegerLiteral(1), new L.IntegerLiteral(2) ])
             ])
         ]);
 
@@ -201,11 +202,11 @@ describe('Parser:statements:assignment:int', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryIntegerOperator.DIV,
-                    new G.IntegerLiteral(1),
-                    new G.BinaryExpression([ G.BinaryIntegerOperator.ADD, new G.IntegerLiteral(2), new G.IntegerLiteral(3) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryIntegerOperator.DIV,
+                    new L.IntegerLiteral(1),
+                    new E.BinaryExpression([ L.BinaryIntegerOperator.ADD, new L.IntegerLiteral(2), new L.IntegerLiteral(3) ])
                 ])
             ])
         ]);

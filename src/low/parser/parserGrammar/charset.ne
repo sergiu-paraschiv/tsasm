@@ -19,4 +19,4 @@ AWS     -> Space        {% d => null %}
 
 Space   -> [" "\t]    {% d => null %}
 
-EOL     -> [\n]    {% d => new G.EndOfLine(d[0]) %}
+EOL     -> [\n]    {% d => new S.EndOfLine(d[0]) %}

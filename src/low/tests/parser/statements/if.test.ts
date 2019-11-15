@@ -1,5 +1,7 @@
-import { Parser } from '../../../Parser';
-import * as G from '../../../ParserGrammar';
+import { Parser } from '../../../parser/Parser';
+import * as L from '../../../parser/ParserGrammarLexemes';
+import * as E from '../../../grammar/Expression';
+import * as S from '../../../grammar/Statement';
 
 
 describe('Parser:statements:if', () => {
@@ -12,9 +14,9 @@ describe('Parser:statements:if', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.IfStatement([
-                new G.VarName('a'),
-                new G.Block([])
+            new S.IfStatement([
+                new L.VarName('a'),
+                new S.Block([])
             ])
         ]);
 
@@ -23,16 +25,16 @@ describe('Parser:statements:if', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.IfStatement([
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.EQ,
-                    new G.VarName('a'),
-                    new G.BinaryExpression([ G.BinaryIntegerOperator.ADD, new G.VarName('b'), new G.IntegerLiteral(2) ])
+            new S.IfStatement([
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.EQ,
+                    new L.VarName('a'),
+                    new E.BinaryExpression([ L.BinaryIntegerOperator.ADD, new L.VarName('b'), new L.IntegerLiteral(2) ])
                 ]),
-                new G.Block([
-                    new G.VarAssignment([
-                        new G.VarName('a'),
-                        new G.BinaryExpression([ G.BinaryIntegerOperator.ADD, new G.VarName('b'), new G.IntegerLiteral(2) ])
+                new S.Block([
+                    new S.VarAssignment([
+                        new L.VarName('a'),
+                        new E.BinaryExpression([ L.BinaryIntegerOperator.ADD, new L.VarName('b'), new L.IntegerLiteral(2) ])
                     ])
                 ])
             ])
@@ -48,12 +50,12 @@ describe('Parser:statements:if', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.IfStatement([
-                new G.VarName('a'),
-                new G.Block([
-                    new G.IfStatement([
-                        new G.VarName('b'),
-                        new G.Block([])
+            new S.IfStatement([
+                new L.VarName('a'),
+                new S.Block([
+                    new S.IfStatement([
+                        new L.VarName('b'),
+                        new S.Block([])
                     ])
                 ])
             ])

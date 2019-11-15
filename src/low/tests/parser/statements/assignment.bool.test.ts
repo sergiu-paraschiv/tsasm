@@ -1,5 +1,7 @@
-import { Parser } from '../../../Parser';
-import * as G from '../../../ParserGrammar';
+import { Parser } from '../../../parser/Parser';
+import * as L from '../../../parser/ParserGrammarLexemes';
+import * as E from '../../../grammar/Expression';
+import * as S from '../../../grammar/Statement';
 
 
 describe('Parser:statements:assignment:bool', () => {
@@ -12,7 +14,7 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'), new G.BooleanLiteral(true) ])
+            new S.VarAssignment([ new L.VarName('a'), new L.BooleanLiteral(true) ])
         ]);
 
         parser.feed('a := false\n');
@@ -20,7 +22,7 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'), new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'), new L.BooleanLiteral(false) ])
         ]);
     });
 
@@ -32,8 +34,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.UnaryExpression([ G.UnaryBooleanOperator.NOT, new G.BooleanLiteral(true) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.UnaryExpression([ L.UnaryBooleanOperator.NOT, new L.BooleanLiteral(true) ])
             ])
         ]);
 
@@ -41,12 +43,12 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.UnaryExpression([
-                    G.UnaryBooleanOperator.NOT,
-                    new G.UnaryExpression([
-                        G.UnaryBooleanOperator.NOT,
-                        new G.BooleanLiteral(true)
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.UnaryExpression([
+                    L.UnaryBooleanOperator.NOT,
+                    new E.UnaryExpression([
+                        L.UnaryBooleanOperator.NOT,
+                        new L.BooleanLiteral(true)
                     ])
                 ])
             ])
@@ -56,12 +58,12 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.UnaryExpression([
-                    G.UnaryBooleanOperator.NOT,
-                    new G.UnaryExpression([
-                        G.UnaryBooleanOperator.NOT,
-                        new G.VarName('b')
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.UnaryExpression([
+                    L.UnaryBooleanOperator.NOT,
+                    new E.UnaryExpression([
+                        L.UnaryBooleanOperator.NOT,
+                        new L.VarName('b')
                     ])
                 ])
             ])
@@ -76,8 +78,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryBooleanOperator.EQ, new G.BooleanLiteral(true), new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryBooleanOperator.EQ, new L.BooleanLiteral(true), new L.BooleanLiteral(false) ])
             ])
         ]);
 
@@ -85,8 +87,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryBooleanOperator.EQ, new G.IntegerLiteral(1), new G.IntegerLiteral(2) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryBooleanOperator.EQ, new L.IntegerLiteral(1), new L.IntegerLiteral(2) ])
             ])
         ]);
 
@@ -94,15 +96,15 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.EQ,
-                    new G.BinaryExpression([
-                        G.BinaryIntegerOperator.ADD,
-                        new G.VarName('b'),
-                        new G.IntegerLiteral(1)
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.EQ,
+                    new E.BinaryExpression([
+                        L.BinaryIntegerOperator.ADD,
+                        new L.VarName('b'),
+                        new L.IntegerLiteral(1)
                     ]),
-                    new G.IntegerLiteral(2)
+                    new L.IntegerLiteral(2)
                 ])
             ])
         ]);
@@ -111,8 +113,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryBooleanOperator.EQ, new G.VarName('b'), new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryBooleanOperator.EQ, new L.VarName('b'), new L.BooleanLiteral(false) ])
             ])
         ]);
 
@@ -120,8 +122,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryBooleanOperator.NEQ, new G.BooleanLiteral(true), new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryBooleanOperator.NEQ, new L.BooleanLiteral(true), new L.BooleanLiteral(false) ])
             ])
         ]);
 
@@ -129,11 +131,11 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.EQ,
-                    new G.UnaryExpression([ G.UnaryBooleanOperator.NOT, new G.BooleanLiteral(true) ]),
-                    new G.BooleanLiteral(false)
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.EQ,
+                    new E.UnaryExpression([ L.UnaryBooleanOperator.NOT, new L.BooleanLiteral(true) ]),
+                    new L.BooleanLiteral(false)
                 ])
             ])
         ]);
@@ -142,11 +144,11 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.OR,
-                    new G.BinaryExpression([ G.BinaryBooleanOperator.NEQ, new G.BooleanLiteral(true), new G.BooleanLiteral(false) ]),
-                    new G.BinaryExpression([ G.BinaryBooleanOperator.EQ, new G.BooleanLiteral(false), new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.OR,
+                    new E.BinaryExpression([ L.BinaryBooleanOperator.NEQ, new L.BooleanLiteral(true), new L.BooleanLiteral(false) ]),
+                    new E.BinaryExpression([ L.BinaryBooleanOperator.EQ, new L.BooleanLiteral(false), new L.BooleanLiteral(false) ])
                 ])
             ])
         ]);
@@ -155,11 +157,11 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.AND,
-                    new G.BooleanLiteral(true),
-                    new G.BinaryExpression([ G.BinaryBooleanOperator.EQ, new G.BooleanLiteral(false), new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.AND,
+                    new L.BooleanLiteral(true),
+                    new E.BinaryExpression([ L.BinaryBooleanOperator.EQ, new L.BooleanLiteral(false), new L.BooleanLiteral(false) ])
                 ])
             ])
         ]);
@@ -168,11 +170,11 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.AND,
-                    new G.VarName('b'),
-                    new G.BinaryExpression([ G.BinaryBooleanOperator.EQ, new G.VarName('c'), new G.VarName('d') ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.AND,
+                    new L.VarName('b'),
+                    new E.BinaryExpression([ L.BinaryBooleanOperator.EQ, new L.VarName('c'), new L.VarName('d') ])
                 ])
             ])
         ]);
@@ -181,19 +183,19 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.OR,
-                    new G.BinaryExpression([
-                        G.BinaryBooleanOperator.AND,
-                        new G.BooleanLiteral(true),
-                        new G.BinaryExpression([
-                            G.BinaryBooleanOperator.EQ,
-                            new G.BooleanLiteral(false),
-                            new G.UnaryExpression([ G.UnaryBooleanOperator.NOT, new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.OR,
+                    new E.BinaryExpression([
+                        L.BinaryBooleanOperator.AND,
+                        new L.BooleanLiteral(true),
+                        new E.BinaryExpression([
+                            L.BinaryBooleanOperator.EQ,
+                            new L.BooleanLiteral(false),
+                            new E.UnaryExpression([ L.UnaryBooleanOperator.NOT, new L.BooleanLiteral(false) ])
                         ])
                     ]),
-                    new G.BinaryExpression([ G.BinaryBooleanOperator.NEQ, new G.BooleanLiteral(true), new G.BooleanLiteral(false) ])
+                    new E.BinaryExpression([ L.BinaryBooleanOperator.NEQ, new L.BooleanLiteral(true), new L.BooleanLiteral(false) ])
                 ])
             ])
         ]);
@@ -207,8 +209,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BooleanLiteral(true)
+            new S.VarAssignment([ new L.VarName('a'),
+                new L.BooleanLiteral(true)
             ])
         ]);
 
@@ -216,8 +218,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BooleanLiteral(true)
+            new S.VarAssignment([ new L.VarName('a'),
+                new L.BooleanLiteral(true)
             ])
         ]);
 
@@ -225,8 +227,8 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([ G.BinaryBooleanOperator.NEQ, new G.BooleanLiteral(true), new G.BooleanLiteral(false) ])
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([ L.BinaryBooleanOperator.NEQ, new L.BooleanLiteral(true), new L.BooleanLiteral(false) ])
             ])
         ]);
 
@@ -234,11 +236,11 @@ describe('Parser:statements:assignment:bool', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarName('a'),
-                new G.BinaryExpression([
-                    G.BinaryBooleanOperator.EQ,
-                    new G.BinaryExpression([ G.BinaryBooleanOperator.AND, new G.BooleanLiteral(true), new G.BooleanLiteral(false) ]),
-                    new G.BooleanLiteral(false)
+            new S.VarAssignment([ new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryBooleanOperator.EQ,
+                    new E.BinaryExpression([ L.BinaryBooleanOperator.AND, new L.BooleanLiteral(true), new L.BooleanLiteral(false) ]),
+                    new L.BooleanLiteral(false)
                 ])
             ])
         ]);

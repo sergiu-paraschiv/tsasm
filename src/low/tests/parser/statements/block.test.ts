@@ -1,5 +1,5 @@
-import { Parser } from '../../../Parser';
-import * as G from '../../../ParserGrammar';
+import { Parser } from '../../../parser/Parser';
+import * as S from '../../../grammar/Statement';
 
 
 describe('Parser:statements:block', () => {
@@ -14,8 +14,8 @@ describe('Parser:statements:block', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.Block([
-                new G.EndOfLine()
+            new S.Block([
+                new S.EndOfLine()
             ])
         ]);
     });
@@ -36,12 +36,12 @@ describe('Parser:statements:block', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.Block([
-                new G.Block([
-                    new G.EndOfLine()
+            new S.Block([
+                new S.Block([
+                    new S.EndOfLine()
                 ]),
-                new G.Block([
-                    new G.EndOfLine()
+                new S.Block([
+                    new S.EndOfLine()
                 ])
             ])
         ]);
@@ -64,15 +64,15 @@ describe('Parser:statements:block', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.Block([
-                new G.EndOfLine(),
-                new G.EndOfLine()
+            new S.Block([
+                new S.EndOfLine(),
+                new S.EndOfLine()
             ]),
-            new G.Block([
-                new G.EndOfLine()
+            new S.Block([
+                new S.EndOfLine()
             ]),
-            new G.Block([
-                new G.EndOfLine()
+            new S.Block([
+                new S.EndOfLine()
             ])
         ]);
     });

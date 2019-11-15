@@ -89,47 +89,8 @@ export enum BasicType {
     VOID  = "void"
 }
 
-export class Block extends ItemWithValue<StatementList> {}
-
-type Statement = Comment | VarDeclaration | VarAssignment | Block | EndOfLine;
-type StatementList = Statement[];
-type Expression = VarName | BooleanLiteral | IntegerLiteral | UnaryExpression | BinaryExpression;
-
-export class IfStatement extends ItemWithValue<[
-    Expression,
-    Block
-] | [
-    Expression,
-    Block,
-    Block
-]> {}
-
-export class VarAssignment extends ItemWithValue<[
-    VarName | VarDeclaration,
-    VarName | Expression
-]> {}
-
-export class VarDeclaration extends ItemWithValue<[
-    BasicType,
-    VarName
-]> {}
-
-export class BinaryExpression extends ItemWithValue<[
-    BinaryBooleanOperator | BinaryIntegerOperator,
-    Expression,
-    Expression
-]> {}
-
-export class UnaryExpression extends ItemWithValue<[
-    UnaryBooleanOperator | UnaryIntegerOperator,
-    VarName | BooleanLiteral | IntegerLiteral | UnaryExpression
-]> {}
-
 export class BooleanLiteral extends ItemWithValue<boolean> {}
 
 export class IntegerLiteral extends ItemWithValue<number> {}
 
 export class VarName extends ItemWithValue<string> {}
-
-export class Comment extends ItemWithValue<string> {}
-export class EndOfLine extends Item {}

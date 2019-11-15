@@ -1,5 +1,5 @@
 import { Parser as NParser, Grammar } from 'nearley';
-import * as grammar from './grammar';
+import * as grammar from './parserGrammar';
 import { ParserError } from './ParserError';
 
 

@@ -1,5 +1,7 @@
-import { Parser } from '../../../Parser';
-import * as G from '../../../ParserGrammar';
+import { Parser } from '../../../parser/Parser';
+import * as L from '../../../parser/ParserGrammarLexemes';
+import * as E from '../../../grammar/Expression';
+import * as S from '../../../grammar/Statement';
 
 
 describe('Parser:statements:declaration', () => {
@@ -19,14 +21,14 @@ describe('Parser:statements:declaration', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('a') ]),
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('A') ]),
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('a1') ]),
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('_a') ]),
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('_1') ]),
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('_1_2_foo') ]),
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('fooBarBaz') ]),
-            new G.VarDeclaration([ G.BasicType.BOOL, new G.VarName('a') ])
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('a') ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('A') ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('a1') ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('_a') ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('_1') ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('_1_2_foo') ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('fooBarBaz') ]),
+            new S.VarDeclaration([ L.BasicType.BOOL, new L.VarName('a') ])
         ]);
     });
 
@@ -50,20 +52,22 @@ describe('Parser:statements:declaration', () => {
         parser.feed('int a := 2\n');
         parser.feed('bool a := false\n');
         parser.feed('int a := 1 + 2\n');
+        parser.feed('int a := b\n');
 
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarAssignment([ new G.VarDeclaration([ G.BasicType.INT, new G.VarName('a') ]), new G.IntegerLiteral(1) ]),
-            new G.VarAssignment([ new G.VarDeclaration([ G.BasicType.INT, new G.VarName('a') ]), new G.IntegerLiteral(2) ]),
-            new G.VarAssignment([ new G.VarDeclaration([ G.BasicType.BOOL, new G.VarName('a') ]), new G.BooleanLiteral(false) ]),
-            new G.VarAssignment([ new G.VarDeclaration([ G.BasicType.INT, new G.VarName('a') ]),
-                new G.BinaryExpression([
-                    G.BinaryIntegerOperator.ADD,
-                    new G.IntegerLiteral(1),
-                    new G.IntegerLiteral(2)
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('a'), new L.IntegerLiteral(1) ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('a'), new L.IntegerLiteral(2) ]),
+            new S.VarDeclaration([ L.BasicType.BOOL, new L.VarName('a'), new L.BooleanLiteral(false) ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('a'),
+                new E.BinaryExpression([
+                    L.BinaryIntegerOperator.ADD,
+                    new L.IntegerLiteral(1),
+                    new L.IntegerLiteral(2)
                 ])
-            ])
+            ]),
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('a'), new L.VarName('b') ])
         ]);
     });
 
@@ -76,7 +80,7 @@ describe('Parser:statements:declaration', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.VarDeclaration([ G.BasicType.INT, new G.VarName('a') ])
+            new S.VarDeclaration([ L.BasicType.INT, new L.VarName('a') ])
         ]);
 
         expect(() => {

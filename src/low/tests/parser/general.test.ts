@@ -1,5 +1,5 @@
-import { Parser } from '../../Parser';
-import * as G from '../../ParserGrammar';
+import { Parser } from '../../parser/Parser';
+import * as S from '../../grammar/Statement';
 
 
 describe('Parser:general', () => {
@@ -12,7 +12,7 @@ describe('Parser:general', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.EndOfLine()
+            new S.EndOfLine()
         ]);
     });
 
@@ -27,9 +27,9 @@ describe('Parser:general', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.EndOfLine(),
-            new G.EndOfLine(),
-            new G.EndOfLine()
+            new S.EndOfLine(),
+            new S.EndOfLine(),
+            new S.EndOfLine()
         ]);
     });
 
@@ -47,12 +47,12 @@ describe('Parser:general', () => {
         results = parser.finish();
 
         expect(results).toStrictEqual([
-            new G.EndOfLine(),
-            new G.EndOfLine(),
-            new G.EndOfLine(),
-            new G.EndOfLine(),
-            new G.EndOfLine(),
-            new G.EndOfLine()
+            new S.EndOfLine(),
+            new S.EndOfLine(),
+            new S.EndOfLine(),
+            new S.EndOfLine(),
+            new S.EndOfLine(),
+            new S.EndOfLine()
         ]);
     });
 });
