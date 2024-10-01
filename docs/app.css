@@ -1,0 +1,72 @@
+body {
+  font-family: "Open Sans", sans-serif !important;
+}
+
+.container {
+  max-width: 1600px !important;
+}
+.container .btn > svg {
+  vertical-align: top;
+  margin-left: 12px;
+  margin-top: 4px;
+}
+
+.Window {
+  border: 1px solid #ebebeb;
+}
+
+.WindowFooter {
+  border-top: 1px solid #ebebeb;
+}
+
+.WindowHeader {
+  padding: 5px 13px 5px 19px;
+  background: #dcdcdc;
+  color: #333333;
+}
+
+.MemoryViewBody > div > div > span {
+  display: inline-block;
+  width: calc((100% - 120px) / 16);
+  padding: 0 13px 0 19px;
+  text-align: right;
+}
+.MemoryViewBody > div > div > span:first-child {
+  width: 120px;
+  background-color: #ebebeb;
+}
+
+.StackViewBody > div > div > span {
+  display: inline-block;
+  width: calc((100% - 120px) / 4);
+  padding: 0 13px 0 19px;
+  text-align: right;
+}
+.StackViewBody > div > div > span:first-child {
+  width: 120px;
+  background-color: #ebebeb;
+}
+.ASMEditor {
+  width: 100%;
+  border: 1px solid #ebebeb;
+}
+.ASMEditor .ace_gutter-cell.ace_breakpoint {
+  position: relative;
+}
+.ASMEditor .ace_gutter-cell.ace_breakpoint:before {
+  content: "";
+  display: block;
+  width: 12px;
+  height: 12px;
+  background-color: #ff2b5d;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+
+.ASMEditorPCLine {
+  background: rgba(7, 216, 44, 0.17) !important;
+}
+
+/*# sourceMappingURL=app.css.map*/
